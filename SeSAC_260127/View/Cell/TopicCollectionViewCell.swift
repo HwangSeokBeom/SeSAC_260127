@@ -10,7 +10,7 @@ import SnapKit
 
 final class TopicCollectionViewCell: UICollectionViewCell {
 
-    static let reuseIdentifier = "TopicCollectionViewCell"
+    static let identifier = "TopicCollectionViewCell"
 
     private let cardImageView: UIImageView = {
         let imageView = UIImageView()
