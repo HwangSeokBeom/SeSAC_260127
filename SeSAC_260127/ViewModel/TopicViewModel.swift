@@ -1,11 +1,10 @@
-//
 //  TopicViewModel.swift
 //  SeSAC_260127
 //
 //  Created by Hwangseokbeom on 1/26/26.
 //
 
-import Foundation
+import UIKit
 
 struct TopicItemViewModel {
     let title: String
@@ -23,11 +22,12 @@ final class TopicViewModel {
     var onUpdate: (() -> Void)?
     var onError: ((Error) -> Void)?
 
-    // MARK: - UseCase
-    private let fetchTopicUseCase: FetchTopicUseCasing
+    // MARK: - Service
+    private let service: TopicAPIService
 
-    init(fetchTopicUseCase: FetchTopicUseCasing) {
-        self.fetchTopicUseCase = fetchTopicUseCase
+    /// 기본값으로 DummyTopicAPIService 주입
+    init(service: TopicAPIService = DummyTopicAPIService()) {
+        self.service = service
     }
 
     // MARK: - Input
@@ -36,7 +36,7 @@ final class TopicViewModel {
     }
 
     func loadTopics() {
-        fetchTopicUseCase.fetchTopics { [weak self] result in
+        service.requestTopicSections { [weak self] result in
             switch result {
             case .success(let sections):
                 self?.sections = sections

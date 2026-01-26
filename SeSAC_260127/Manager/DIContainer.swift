@@ -14,10 +14,8 @@ final class DIContainer {
 
     // 모듈 단위로 factory 제공
     func makeTopicViewController() -> TopicViewController {
-        let api = DummyTopicAPIService()
-        let repo = DefaultTopicRepository(api: api)
-        let useCase = FetchTopicUseCase(repository: repo)
-        let viewModel = TopicViewModel(fetchTopicUseCase: useCase)
+        let apiService: TopicAPIService = DummyTopicAPIService()
+        let viewModel = TopicViewModel(service: apiService)
         let vc = TopicViewController(viewModel: viewModel)
         return vc
     }
