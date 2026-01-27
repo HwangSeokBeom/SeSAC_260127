@@ -19,10 +19,10 @@ final class DummyPhotoSearchService: PhotoSearchServicing {
     ) {
         // 나중에 교체하면 됨
         let dummy: [Photo] = [
-            Photo(id: "1", imageURL: nil, likeCount: 1643, isFavorite: false),
-            Photo(id: "2", imageURL: nil, likeCount: 3346, isFavorite: true),
-            Photo(id: "3", imageURL: nil, likeCount: 12,   isFavorite: false),
-            Photo(id: "4", imageURL: nil, likeCount: 46232,isFavorite: true)
+            Photo(id: "1", imageURL: URL(string: "https://picsum.photos/300/200"), likeCount: 1643, isFavorite: false),
+            Photo(id: "2", imageURL: URL(string: "https://picsum.photos/300/201"), likeCount: 3346, isFavorite: true),
+            Photo(id: "3", imageURL: URL(string: "https://picsum.photos/300/202"), likeCount: 12,   isFavorite: false),
+            Photo(id: "4", imageURL: URL(string: "https://picsum.photos/300/203"), likeCount: 46232,isFavorite: true)
         ]
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

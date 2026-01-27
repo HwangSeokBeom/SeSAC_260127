@@ -4,33 +4,41 @@
 //  Created by Hwangseokbeom on 1/26/26.
 //
 
+// TopicViewModel.swift
+
 import UIKit
 
-struct TopicItemViewModel {
-    let title: String
-    let imageName: String
-    let likeCountText: String
+protocol TopicViewModelInput: AnyObject {
+    func viewDidLoad()
+    func loadTopics()
 }
 
-final class TopicViewModel {
+protocol TopicViewModelOutput: AnyObject {
+    var numberOfSections: Int { get }
+    
+    func titleForSection(_ section: Int) -> String
+    func numberOfItems(in section: Int) -> Int
+    func cellViewModel(at indexPath: IndexPath) -> TopicCellModel
 
-    // MARK: - Output
+    var onUpdate: (() -> Void)? { get set }
+    var onError: ((Error) -> Void)? { get set }
+}
+
+final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
+
     private(set) var sections: [TopicSection] = [] {
         didSet { onUpdate?() }
     }
 
     var onUpdate: (() -> Void)?
     var onError: ((Error) -> Void)?
-
-    // MARK: - Service
+    
     private let service: TopicAPIService
-
-    // 기본값으로 DummyTopicAPIService 주입
+    
     init(service: TopicAPIService = DummyTopicAPIService()) {
         self.service = service
     }
 
-    // MARK: - Input
     func viewDidLoad() {
         loadTopics()
     }
@@ -46,27 +54,22 @@ final class TopicViewModel {
         }
     }
 
-    // MARK: - Helpers for VC (DataSource용)
-
+    // Output
     var numberOfSections: Int {
         sections.count
     }
 
-    func sectionTitle(at index: Int) -> String {
-        sections[index].title
+    func titleForSection(_ section: Int) -> String {
+        sections[section].title
     }
 
     func numberOfItems(in section: Int) -> Int {
         sections[section].items.count
     }
 
-    func itemViewModel(at indexPath: IndexPath) -> TopicItemViewModel {
+    func cellViewModel(at indexPath: IndexPath) -> TopicCellModel {
         let item = sections[indexPath.section].items[indexPath.item]
-        return TopicItemViewModel(
-            title: item.title,
-            imageName: item.imageName,
-            likeCountText: NumberFormatter.withComma.string(from: item.likeCount as NSNumber) ?? "\(item.likeCount)"
-        )
+        return TopicCellModel(domain: item)
     }
 }
 

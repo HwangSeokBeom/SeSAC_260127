@@ -8,9 +8,19 @@
 import UIKit
 import SnapKit
 
-final class SearchPhotoViewController: UIViewController {
+final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     
-    // MARK: - UI
+    private let viewModel: (SearchPhotoViewModelInput & SearchPhotoViewModelOutput)
+    
+    init(viewModel: some SearchPhotoViewModelInput & SearchPhotoViewModelOutput) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private let searchBar: UISearchBar = {
         let bar = UISearchBar()
@@ -28,16 +38,16 @@ final class SearchPhotoViewController: UIViewController {
         layout.minimumLineSpacing = 8
         layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .clear
-        cv.showsHorizontalScrollIndicator = false
-        cv.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.identifier)
-        cv.dataSource = self
-        cv.delegate = self
-        cv.allowsMultipleSelection = false
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .clear
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.identifier)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.allowsMultipleSelection = false
         // 정렬 버튼이 오른쪽 위에 겹치니까 여유 공간
-        cv.contentInset.right = 90
-        return cv
+        collectionView.contentInset.right = 90
+        return collectionView
     }()
     
     // 사진 그리드 컬렉션뷰
@@ -46,53 +56,39 @@ final class SearchPhotoViewController: UIViewController {
         layout.minimumInteritemSpacing = 8
         layout.minimumLineSpacing = 8
         
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .systemBackground
-        cv.register(PhotoCell.self, forCellWithReuseIdentifier: PhotoCell.identifier)
-        cv.dataSource = self
-        cv.delegate = self
-        return cv
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .systemBackground
+        collectionView.register(PhotoCell.self, forCellWithReuseIdentifier: PhotoCell.identifier)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        return collectionView
     }()
     
     // 정렬 플로팅 버튼 (필터 컬렉션뷰 위에 떠 있는 형태)
     private let sortButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle(" 관련순", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.backgroundColor = .white
-        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        var config = UIButton.Configuration.plain()
+        config.baseForegroundColor = .black
+        config.baseBackgroundColor = .white
+        config.image = UIImage(
+            systemName: "arrow.up.arrow.down",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+        )
+        config.imagePadding = 4
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 12)
+        
+        var title = AttributedString(" 관련순")
+        title.font = .systemFont(ofSize: 14, weight: .medium)
+        config.attributedTitle = title
+        
+        let button = UIButton(configuration: config)
         button.layer.cornerRadius = 16
-        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 12)
-        
-        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .medium)
-        let image = UIImage(systemName: "arrow.up.arrow.down", withConfiguration: config)
-        button.setImage(image, for: .normal)
-        button.tintColor = .black
-        
+        button.layer.masksToBounds = false
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = 0.15
         button.layer.shadowRadius = 4
         button.layer.shadowOffset = CGSize(width: 0, height: 2)
         return button
     }()
-    
-    // MARK: - Data
-    
-    private var items: [PhotoItem] = []  // 처음엔 빈 상태 ( "사진을 검색해보세요" 상태 )
-    
-    private let filters: [FilterOption] = [
-        FilterOption(title: "블랙",  color: .black),
-        FilterOption(title: "화이트", color: .white),
-        FilterOption(title: "옐로우", color: .systemYellow),
-        FilterOption(title: "레드",   color: .systemRed),
-        FilterOption(title: "오렌지", color: .systemOrange),
-        FilterOption(title: "그린",   color: .systemGreen),
-        FilterOption(title: "블루",   color: .systemBlue),
-        FilterOption(title: "네이비", color: .systemIndigo),
-        FilterOption(title: "퍼플",   color: .systemPurple)
-    ]
-    
-    private var selectedFilterIndex: Int = 0   // 기본: 블랙
     
     private let emptyLabel: UILabel = {
         let label = UILabel()
@@ -102,15 +98,6 @@ final class SearchPhotoViewController: UIViewController {
         return label
     }()
     
-    private var isLatestSort = false {
-        didSet {
-            let title = isLatestSort ? " 최신순" : " 관련순"
-            sortButton.setTitle(title, for: .normal)
-        }
-    }
-    
-    // MARK: - LifeCycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -119,12 +106,14 @@ final class SearchPhotoViewController: UIViewController {
         configureHierarchy()
         configureLayout()
         configureActions()
+        bindViewModel()
         updateEmptyState()
+        viewModel.search(query: "")
         
-        // 기본 선택 상태 셀
+        // 기본 색상 선택
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            let indexPath = IndexPath(item: self.selectedFilterIndex, section: 0)
+            let indexPath = IndexPath(item: self.viewModel.selectedColorIndex, section: 0)
             self.filterCollectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
         }
     }
@@ -134,13 +123,46 @@ final class SearchPhotoViewController: UIViewController {
         updateCollectionViewItemSize()
     }
     
-    // MARK: - Setup
-    
-    private func configureView() {
-        navigationItem.title = "SEARCH PHOTO"
+    private func bindViewModel() {
+        viewModel.onUpdate = { [weak self] in
+            guard let self else { return }
+            self.collectionView.reloadData()
+            self.updateEmptyState()
+            self.updateSortButtonTitle()
+        }
+        
+        viewModel.onError = { [weak self] message in
+            // TODO:
+            print(message)
+        }
     }
     
-    private func configureHierarchy() {
+    private func updateEmptyState() {
+        emptyLabel.isHidden = !viewModel.isEmpty
+    }
+    
+    private func updateSortButtonTitle() {
+        var config = sortButton.configuration ?? .plain()
+        
+        let text: String
+        switch viewModel.currentSortOption {
+        case .relevance: text = " 관련순"
+        case .latest:    text = " 최신순"
+        }
+        
+        var titleAttr = AttributedString(text)
+        titleAttr.font = .systemFont(ofSize: 14, weight: .medium)
+        config.attributedTitle = titleAttr
+        
+        sortButton.configuration = config
+    }
+    
+    func configureView() {
+        navigationItem.title = "SEARCH PHOTO"
+        searchBar.delegate = self
+    }
+    
+    func configureHierarchy() {
         view.addSubview(searchBar)
         view.addSubview(filterCollectionView)
         view.addSubview(collectionView)
@@ -148,7 +170,7 @@ final class SearchPhotoViewController: UIViewController {
         view.addSubview(emptyLabel)
     }
     
-    private func configureLayout() {
+    func configureLayout() {
         let safe = view.safeAreaLayoutGuide
         
         searchBar.snp.makeConstraints { make in
@@ -184,20 +206,9 @@ final class SearchPhotoViewController: UIViewController {
         sortButton.addTarget(self, action: #selector(sortButtonTapped), for: .touchUpInside)
     }
     
-    private func updateEmptyState() {
-        emptyLabel.isHidden = !items.isEmpty
-    }
-    
-    // MARK: - Actions (정렬 버튼)
-    
     @objc private func sortButtonTapped() {
-        isLatestSort.toggle()
-        print(isLatestSort ? "최신순 정렬" : "관련순 정렬")
-        // TODO: items 정렬 후 reload
-        // collectionView.reloadData()
+        viewModel.toggleSort()
     }
-    
-    // MARK: - Layout Helper (사진 셀 크기)
     
     private func updateCollectionViewItemSize() {
         guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
@@ -209,8 +220,6 @@ final class SearchPhotoViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDataSource
-
 extension SearchPhotoViewController: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int { 1 }
@@ -218,71 +227,75 @@ extension SearchPhotoViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView,
                         numberOfItemsInSection section: Int) -> Int {
         if collectionView === self.collectionView {
-            return items.count
+            return viewModel.items.count
         } else {
-            return filters.count
+            return viewModel.filters.count
         }
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView === self.collectionView {
-            // 사진 셀
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: PhotoCell.identifier,
                 for: indexPath
             ) as? PhotoCell else {
                 return UICollectionViewCell()
             }
-            cell.configure(with: items[indexPath.item])
+            let item = viewModel.items[indexPath.item]
+            cell.configure(with: item)
             return cell
         } else {
-            // 색상 필터 셀
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: FilterCell.identifier,
                 for: indexPath
             ) as? FilterCell else {
                 return UICollectionViewCell()
             }
-            cell.configure(with: filters[indexPath.item])
+            cell.configure(with: viewModel.filters[indexPath.item])
             return cell
         }
     }
 }
-
-// MARK: - UICollectionViewDelegate
 
 extension SearchPhotoViewController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
         if collectionView === filterCollectionView {
-            selectedFilterIndex = indexPath.item
-            print("필터 선택:", filters[indexPath.item].title)
-            // TODO: 색상 필터에 따라 items 필터링 후 reload
-        } else {
-            // 사진 셀 선택 시 동작
+            viewModel.selectColor(at: indexPath.item)
         }
     }
 }
-
-// MARK: - UICollectionViewDelegateFlowLayout (필터 셀 깨짐 해결)
 
 extension SearchPhotoViewController: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        // 색상 필터 컬렉션뷰 셀 사이즈 계산
         if collectionView === filterCollectionView {
-            let option = filters[indexPath.item]
+            let option = viewModel.filters[indexPath.item]
             let font = UIFont.systemFont(ofSize: 14, weight: .medium)
             let textWidth = (option.title as NSString)
                 .size(withAttributes: [.font: font]).width
             // 좌우 inset(10+10) + 색상 동그라미(16) + 텍스트 좌우 여유(6)
             let width = 10 + 16 + 6 + textWidth + 10
             return CGSize(width: width, height: 32)
+        } else {
+            // 메인 그리드 컬렉션뷰는 레이아웃에 설정된 itemSize 그대로 사용
+            if let flowLayout = collectionViewLayout as? UICollectionViewFlowLayout {
+                return flowLayout.itemSize
+            } else {
+                return .zero
+            }
         }
-        return .zero   // 사진 컬렉션뷰는 updateCollectionViewItemSize에서 설정
+    }
+}
+
+extension SearchPhotoViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        viewModel.search(query: searchBar.text ?? "")
+        searchBar.resignFirstResponder()
     }
 }

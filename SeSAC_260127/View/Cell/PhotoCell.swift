@@ -4,8 +4,10 @@
 //
 //  Created by Hwangseokbeom on 1/27/26.
 //
+
 import UIKit
 import SnapKit
+import Kingfisher
 
 final class PhotoCell: UICollectionViewCell {
     
@@ -52,7 +54,7 @@ final class PhotoCell: UICollectionViewCell {
         return button
     }()
     
-    private var currentItem: PhotoItem?
+    private var currentModel: PhotoCellModel?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -62,6 +64,17 @@ final class PhotoCell: UICollectionViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        photoImageView.kf.cancelDownloadTask()
+        photoImageView.image = nil
+        likeCountLabel.text = nil
+        currentModel = nil
+        
+        let heartImage = UIImage(systemName: "heart")
+        favoriteButton.setImage(heartImage, for: .normal)
     }
     
     private func configureHierarchy() {
@@ -100,17 +113,19 @@ final class PhotoCell: UICollectionViewCell {
         }
     }
     
-    func configure(with item: PhotoItem) {
-        currentItem = item
-        likeCountLabel.text = "\(item.likeCount)"
+    func configure(with viewModel: PhotoCellModel) {
+        currentModel = viewModel
         
-        if let image = UIImage(named: item.imageName) {
-            photoImageView.image = image
+        likeCountLabel.text = viewModel.likeCountText
+        
+        if let url = viewModel.imageURL {
+            photoImageView.kf.setImage(with: url)
         } else {
             photoImageView.image = nil
         }
         
-        let heartName = item.isFavorite ? "heart.fill" : "heart"
-        favoriteButton.setImage(UIImage(systemName: heartName), for: .normal)
+        let heartName = viewModel.isFavorite ? "heart.fill" : "heart"
+        let image = UIImage(systemName: heartName)
+        favoriteButton.setImage(image, for: .normal)
     }
 }

@@ -8,11 +8,6 @@
 import UIKit
 import SnapKit
 
-struct FilterOption {
-    let title: String
-    let color: UIColor
-}
-
 final class FilterCell: UICollectionViewCell {
     
     static let identifier = "FilterCell"
@@ -54,6 +49,11 @@ final class FilterCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        isSelected = false
+    }
+    
     private func configureHierarchy() {
         contentView.addSubview(containerView)
         containerView.addSubview(colorView)
@@ -82,14 +82,17 @@ final class FilterCell: UICollectionViewCell {
         if isSelected {
             containerView.backgroundColor = .black
             titleLabel.textColor = .white
+            colorView.layer.borderWidth = 1
+            colorView.layer.borderColor = UIColor.white.cgColor
         } else {
             containerView.backgroundColor = .systemGray6
             titleLabel.textColor = .label
+            colorView.layer.borderWidth = 0
         }
     }
     
-    func configure(with option: FilterOption) {
-        titleLabel.text = option.title
-        colorView.backgroundColor = option.color
+    func configure(with viewModel: FilterCellModel) {
+        titleLabel.text = viewModel.title
+        colorView.backgroundColor = viewModel.color
     }
 }

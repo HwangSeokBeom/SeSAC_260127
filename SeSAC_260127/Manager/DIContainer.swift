@@ -21,8 +21,10 @@ final class DIContainer {
     }
     
     func makeSearchPhotoViewController() -> SearchPhotoViewController {
-        let vc = SearchPhotoViewController()
-        // 필요하면 여기서 viewModel 주입도 가능
+        let service: PhotoSearchServicing = DummyPhotoSearchService()
+        let repository: PhotoSearchRepository = DefaultPhotoSearchRepository(service: service)
+        let viewModel = SearchPhotoViewModel(repository: repository)
+        let vc = SearchPhotoViewController(viewModel: viewModel)
         return vc
     }
 }

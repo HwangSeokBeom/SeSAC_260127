@@ -5,8 +5,11 @@
 //  Created by Hwangseokbeom on 1/26/26.
 //
 
+//  TopicCollectionViewCell.swift
+
 import UIKit
 import SnapKit
+import Kingfisher   // 👈 추가
 
 final class TopicCollectionViewCell: UICollectionViewCell {
 
@@ -57,6 +60,13 @@ final class TopicCollectionViewCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cardImageView.kf.cancelDownloadTask()
+        cardImageView.image = nil
+        likeLabel.text = nil
+    }
 
     private func configureHierarchy() {
         contentView.addSubview(cardImageView)
@@ -94,8 +104,13 @@ final class TopicCollectionViewCell: UICollectionViewCell {
         }
     }
 
-    func configure(with viewModel: TopicItemViewModel) {
-        cardImageView.image = UIImage(named: viewModel.imageName)
+    func configure(with viewModel: TopicCellModel) {
         likeLabel.text = viewModel.likeCountText
+        
+        if let url = viewModel.imageURL {
+            cardImageView.kf.setImage(with: url)
+        } else {
+            cardImageView.image = nil
+        }
     }
 }

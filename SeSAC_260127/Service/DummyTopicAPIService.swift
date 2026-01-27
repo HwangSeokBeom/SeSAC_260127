@@ -14,22 +14,22 @@ final class DummyTopicAPIService: TopicAPIService {
             TopicSection(
                 title: "골든 아워",
                 items: [
-                    TopicItem(title: "Golden Hour 1", imageName: "golden1", likeCount: 1234),
-                    TopicItem(title: "Golden Hour 2", imageName: "golden2", likeCount: 35235)
+                    TopicItem(title: "Golden Hour 1", imageURLString: "golden1", likeCount: 1234),
+                    TopicItem(title: "Golden Hour 2", imageURLString: "golden2", likeCount: 35235)
                 ]
             ),
             TopicSection(
                 title: "비즈니스 및 업무",
                 items: [
-                    TopicItem(title: "Business 1", imageName: "business1", likeCount: 876),
-                    TopicItem(title: "Business 2", imageName: "business2", likeCount: 4242)
+                    TopicItem(title: "Business 1", imageURLString: "business1", likeCount: 876),
+                    TopicItem(title: "Business 2", imageURLString: "business2", likeCount: 4242)
                 ]
             ),
             TopicSection(
                 title: "건축 및 인테리어",
                 items: [
-                    TopicItem(title: "Interior 1", imageName: "interior1", likeCount: 7475),
-                    TopicItem(title: "Interior 2", imageName: "interior2", likeCount: 2200)
+                    TopicItem(title: "Interior 1", imageURLString: "interior1", likeCount: 7475),
+                    TopicItem(title: "Interior 2", imageURLString: "interior2", likeCount: 2200)
                 ]
             )
         ]
