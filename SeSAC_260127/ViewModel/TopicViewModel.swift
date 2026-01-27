@@ -4,9 +4,9 @@
 //  Created by Hwangseokbeom on 1/26/26.
 //
 
-// TopicViewModel.swift
-
 import UIKit
+
+// MARK: - Protocols
 
 protocol TopicViewModelInput: AnyObject {
     func viewDidLoad()
@@ -21,40 +21,54 @@ protocol TopicViewModelOutput: AnyObject {
     func cellViewModel(at indexPath: IndexPath) -> TopicCellModel
 
     var onUpdate: (() -> Void)? { get set }
-    var onError: ((Error) -> Void)? { get set }
+    var onError: ((String) -> Void)? { get set }
 }
+
+// MARK: - ViewModel
 
 final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
 
+    // MARK: - State
+    
     private(set) var sections: [TopicSection] = [] {
         didSet { onUpdate?() }
     }
 
+    // MARK: - Output Callbacks
+    
     var onUpdate: (() -> Void)?
-    var onError: ((Error) -> Void)?
+    var onError: ((String) -> Void)?
     
-    private let service: TopicAPIService
+    // MARK: - Dependencies
     
-    init(service: TopicAPIService = DummyTopicAPIService()) {
-        self.service = service
+    private let repository: TopicRepository
+    
+    init(repository: TopicRepository) {
+        self.repository = repository
     }
 
+    // MARK: - Input
+    
     func viewDidLoad() {
         loadTopics()
     }
 
     func loadTopics() {
-        service.requestTopicSections { [weak self] result in
+        repository.fetchTopics { [weak self] result in
+            guard let self else { return }
+            
             switch result {
             case .success(let sections):
-                self?.sections = sections
+                self.sections = sections
             case .failure(let error):
-                self?.onError?(error)
+                self.sections = []
+                self.onError?("토픽 불러오기 실패: \(error.localizedDescription)")
             }
         }
     }
 
-    // Output
+    // MARK: - Output Helpers
+    
     var numberOfSections: Int {
         sections.count
     }
@@ -71,12 +85,4 @@ final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
         let item = sections[indexPath.section].items[indexPath.item]
         return TopicCellModel(domain: item)
     }
-}
-
-private extension NumberFormatter {
-    static let withComma: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
 }

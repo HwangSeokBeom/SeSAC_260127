@@ -96,7 +96,7 @@ final class TopicViewController: UIViewController {
         }
         
         viewModel.onError = { [weak self] error in
-            print("Error:", error.localizedDescription)
+            print("Error:", error)
         }
     }
  

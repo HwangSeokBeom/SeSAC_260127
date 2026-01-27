@@ -8,5 +8,5 @@
 import Foundation
 
 protocol TopicAPIService {
-    func requestTopicSections(completion: @escaping (Result<[TopicSection], Error>) -> Void)
+    func fetchTopics(completion: @escaping (Result<[TopicSection], Error>) -> Void)
 }

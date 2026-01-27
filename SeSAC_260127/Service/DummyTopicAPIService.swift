@@ -8,7 +8,7 @@ import Foundation
 
 final class DummyTopicAPIService: TopicAPIService {
 
-    func requestTopicSections(completion: @escaping (Result<[TopicSection], Error>) -> Void) {
+    func fetchTopics(completion: @escaping (Result<[TopicSection], Error>) -> Void) {
       
         let sections: [TopicSection] = [
             TopicSection(

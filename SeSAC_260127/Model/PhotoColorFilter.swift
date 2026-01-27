@@ -8,7 +8,7 @@
 import UIKit
 
 enum PhotoColorFilter: CaseIterable {
-    case black, white, yellow, red, orange, green, blue, navy, purple
+    case black, white, yellow, red, orange, green, blue, purple
     
     var title: String {
         switch self {
@@ -19,7 +19,6 @@ enum PhotoColorFilter: CaseIterable {
         case .orange: return "오렌지"
         case .green: return "그린"
         case .blue: return "블루"
-        case .navy: return "네이비"
         case .purple: return "퍼플"
         }
     }
@@ -33,7 +32,6 @@ enum PhotoColorFilter: CaseIterable {
         case .orange: return .systemOrange
         case .green: return .systemGreen
         case .blue: return .systemBlue
-        case .navy: return .systemIndigo
         case .purple: return .systemPurple
         }
     }
@@ -44,3 +42,18 @@ struct FilterOption {
     let color: UIColor
 }
 
+extension PhotoColorFilter {
+    
+    var apiValue: String {
+        switch self {
+        case .black:  return "black"
+        case .white:  return "white"
+        case .yellow: return "yellow"
+        case .red:    return "red"
+        case .orange: return "orange"
+        case .green:  return "green"
+        case .blue:   return "blue"
+        case .purple: return "purple"
+        }
+    }
+}

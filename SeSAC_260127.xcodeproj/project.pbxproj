@@ -11,10 +11,12 @@
 		8B38B1622F2748920012665B /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8B38B1612F2748920012665B /* SnapKit */; };
 		8B38B1652F27489F0012665B /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 8B38B1642F27489F0012665B /* Kingfisher */; };
 		8B38B1682F2748AF0012665B /* IQKeyboardManagerSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 8B38B1672F2748AF0012665B /* IQKeyboardManagerSwift */; };
+		8B38B3872F2902B90012665B /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 8B38B3862F2902B90012665B /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		8B38B12B2F2744840012665B /* SeSAC_260127.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SeSAC_260127.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B38B3862F2902B90012665B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -56,6 +58,7 @@
 		8B38B1222F2744840012665B = {
 			isa = PBXGroup;
 			children = (
+				8B38B3862F2902B90012665B /* .gitignore */,
 				8B38B12D2F2744840012665B /* SeSAC_260127 */,
 				8B38B12C2F2744840012665B /* Products */,
 			);
@@ -143,6 +146,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B38B3872F2902B90012665B /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

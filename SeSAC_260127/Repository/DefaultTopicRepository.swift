@@ -7,15 +7,19 @@
 
 import Foundation
 
+import Foundation
+
 final class DefaultTopicRepository: TopicRepository {
-
-    private let api: TopicAPIService
-
-    init(api: TopicAPIService) {
-        self.api = api
+    
+    private let service: TopicAPIService
+    
+    init(service: TopicAPIService) {
+        self.service = service
     }
-
-    func fetchTopics(completion: @escaping (Result<[TopicSection], Error>) -> Void) {
-        api.requestTopicSections(completion: completion)
+    
+    func fetchTopics(
+        completion: @escaping (Result<[TopicSection], Error>) -> Void
+    ) {
+        service.fetchTopics(completion: completion)
     }
 }
