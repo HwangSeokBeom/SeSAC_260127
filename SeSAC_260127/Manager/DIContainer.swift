@@ -5,7 +5,7 @@
 //  Created by Hwangseokbeom on 1/26/26.
 //
 
-import Foundation
+import UIKit
 
 final class DIContainer {
 
@@ -17,6 +17,12 @@ final class DIContainer {
         let apiService: TopicAPIService = DummyTopicAPIService()
         let viewModel = TopicViewModel(service: apiService)
         let vc = TopicViewController(viewModel: viewModel)
+        return vc
+    }
+    
+    func makeSearchPhotoViewController() -> SearchPhotoViewController {
+        let vc = SearchPhotoViewController()
+        // 필요하면 여기서 viewModel 주입도 가능
         return vc
     }
 }

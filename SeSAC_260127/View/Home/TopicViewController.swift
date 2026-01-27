@@ -34,7 +34,7 @@ final class TopicViewController: UIViewController, ViewDesignProtocol {
         collectionView.register(
             TopicSectionHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-            withReuseIdentifier: TopicSectionHeaderView.reuseIdentifier
+            withReuseIdentifier: TopicSectionHeaderView.identifier
         )
         return collectionView
     }()
@@ -42,11 +42,6 @@ final class TopicViewController: UIViewController, ViewDesignProtocol {
     init(viewModel: TopicViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        self.tabBarItem = UITabBarItem(
-            title: nil,
-            image: UIImage(systemName: "chart.bar"),
-            selectedImage: UIImage(systemName: "chart.bar.fill")
-        )
     }
     
     required init?(coder: NSCoder) {

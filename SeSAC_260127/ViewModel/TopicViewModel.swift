@@ -25,7 +25,7 @@ final class TopicViewModel {
     // MARK: - Service
     private let service: TopicAPIService
 
-    /// 기본값으로 DummyTopicAPIService 주입
+    // 기본값으로 DummyTopicAPIService 주입
     init(service: TopicAPIService = DummyTopicAPIService()) {
         self.service = service
     }

@@ -18,6 +18,11 @@ final class MainTabBarController: UITabBarController {
 
     private func setupTabs() {
         let topicVC = DIContainer.shared.makeTopicViewController()
+        topicVC.tabBarItem = UITabBarItem(
+            title: nil,
+            image: UIImage(systemName: "chart.bar"),
+            selectedImage: UIImage(systemName: "chart.bar.fill")
+        )
 
         let calendarVC = UIViewController()
         calendarVC.view.backgroundColor = .systemBackground
@@ -27,8 +32,7 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(systemName: "calendar.circle.fill")
         )
 
-        let searchVC = UIViewController()
-        searchVC.view.backgroundColor = .systemBackground
+        let searchVC = DIContainer.shared.makeSearchPhotoViewController()
         searchVC.tabBarItem = UITabBarItem(
             title: nil,
             image: UIImage(systemName: "magnifyingglass"),
