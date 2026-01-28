@@ -30,15 +30,16 @@ struct UnsplashPhotoStatisticsDTO: Decodable {
 extension UnsplashPhotoStatisticsDTO {
     
     func toDomain(width: Int, height: Int) -> PhotoStatistics {
-        let formatter = ISO8601DateFormatter()
+        
+        let dateFormatter = FormatterManager.iso8601
         
         let viewsHistory: [DailyStat] = views.historical.values.compactMap { v in
-            guard let date = formatter.date(from: v.date) else { return nil }
+            guard let date = dateFormatter.date(from: v.date) else { return nil }
             return DailyStat(date: date, value: v.value)
         }
         
         let downloadsHistory: [DailyStat] = downloads.historical.values.compactMap { v in
-            guard let date = formatter.date(from: v.date) else { return nil }
+            guard let date = dateFormatter.date(from: v.date) else { return nil }
             return DailyStat(date: date, value: v.value)
         }
         

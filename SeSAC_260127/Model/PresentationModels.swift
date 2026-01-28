@@ -7,6 +7,8 @@
 
 import UIKit
 
+// MARK: - Topic Cell
+
 struct TopicCellModel {
     let title: String
     let imageURL: URL?
@@ -14,22 +16,17 @@ struct TopicCellModel {
 }
 
 extension TopicCellModel {
-    
-    private static let formatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
-    
+
     init(domain: TopicItem) {
         self.title = domain.title
         self.imageURL = URL(string: domain.imageURLString)
-        self.likeCountText = Self.formatter.string(from: domain.likeCount as NSNumber)
+        self.likeCountText = FormatterManager.decimalNumber.string(from: domain.likeCount as NSNumber)
             ?? "\(domain.likeCount)"
     }
 }
 
-// MARK: - Photo Cell에 쓰는 모델
+// MARK: - Photo Cell
+
 struct PhotoCellModel {
     let imageURL: URL?
     let likeCountText: String
@@ -39,12 +36,14 @@ struct PhotoCellModel {
 extension PhotoCellModel {
     init(domain: Photo) {
         self.imageURL = domain.imageURL
-        self.likeCountText = "\(domain.likeCount)"
+        self.likeCountText = FormatterManager.decimalNumber.string(from: domain.likeCount as NSNumber)
+            ?? "\(domain.likeCount)"
         self.isFavorite = domain.isFavorite
     }
 }
 
-// MARK: - Filter Cell에 쓰는 모델
+// MARK: - Filter Cell
+
 struct FilterCellModel {
     let title: String
     let color: UIColor
@@ -56,6 +55,8 @@ extension FilterCellModel {
         self.color  = filter.color
     }
 }
+
+// MARK: - Detail Models
 
 struct PhotoDetailHeaderModel {
     let mainImageURL: URL?
@@ -78,54 +79,36 @@ struct DailyStatCellModel {
     let valueText: String
 }
 
-// MARK: - Mapping from Domain
+// MARK: - Header Mapping
 
 extension PhotoDetailHeaderModel {
-    
-    private static let numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
-    
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateStyle = .medium
-        f.timeStyle = .none
-        // 필요하면 locale 설정
-        // f.locale = Locale(identifier: "ko_KR")
-        return f
-    }()
-    
+
     init(domain: Photo) {
         self.mainImageURL = domain.imageURL
         self.userName = domain.userName
         self.userProfileImageURL = domain.userProfileImageURL
         
         if let createdAt = domain.createdAt {
-            self.createdAtText = Self.dateFormatter.string(from: createdAt)
+            self.createdAtText = FormatterManager.photoCreatedDate.string(from: createdAt)
         } else {
             self.createdAtText = "날짜 정보 없음"
         }
         
         self.sizeText = "\(domain.width) x \(domain.height)"
-        self.likeCountText = Self.numberFormatter.string(from: domain.likeCount as NSNumber)
+        self.likeCountText = FormatterManager.decimalNumber.string(from: domain.likeCount as NSNumber)
             ?? "\(domain.likeCount)"
     }
 }
 
+// MARK: - Statistics Mapping
+
 extension PhotoDetailStatisticsModel {
-    
-    private static let numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
-    
+
     init(domain: PhotoStatistics) {
-        self.totalViewsText = Self.numberFormatter.string(from: domain.totalViews as NSNumber)
+        self.totalViewsText = FormatterManager.decimalNumber.string(from: domain.totalViews as NSNumber)
             ?? "\(domain.totalViews)"
-        self.totalDownloadsText = Self.numberFormatter.string(from: domain.totalDownloads as NSNumber)
+        
+        self.totalDownloadsText = FormatterManager.decimalNumber.string(from: domain.totalDownloads as NSNumber)
             ?? "\(domain.totalDownloads)"
         
         self.viewsHistory = domain.viewsHistory.map { DailyStatCellModel(domain: $0) }
@@ -133,18 +116,13 @@ extension PhotoDetailStatisticsModel {
     }
 }
 
+// MARK: - Daily Stat Mapping
+
 extension DailyStatCellModel {
-    
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateStyle = .short
-        f.timeStyle = .none
-        // f.locale = Locale(identifier: "ko_KR")
-        return f
-    }()
-    
+
     init(domain: DailyStat) {
-        self.dateText = Self.dateFormatter.string(from: domain.date)
-        self.valueText = "\(domain.value)"
+        self.dateText = FormatterManager.statChartDate.string(from: domain.date)
+        self.valueText = FormatterManager.decimalNumber.string(from: domain.value as NSNumber)
+            ?? "\(domain.value)"
     }
 }

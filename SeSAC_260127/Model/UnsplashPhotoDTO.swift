@@ -1,5 +1,5 @@
 //
-//  UnsplashSearchResponse.swift
+//  UnsplashPhotoDTO.swift
 //  SeSAC_260127
 //
 //  Created by Hwangseokbeom on 1/27/26.

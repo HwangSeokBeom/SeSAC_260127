@@ -62,33 +62,21 @@ final class PhotoDetailViewModel: PhotoDetailViewModelInput, PhotoDetailViewMode
     private let repository: PhotoStatisticsRepository
     private var statistics: PhotoStatistics?
     
-    private static let numberFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return f
-    }()
-    
     // MARK: - Init
     
-    init(
-        photo: Photo,
-        repository: PhotoStatisticsRepository
-    ) {
+    init(photo: Photo, repository: PhotoStatisticsRepository) {
         self.photo = photo
         self.repository = repository
         
-        self.sizeText = "\(photo.width) x \(photo.height)"
-        self.authorNameText = photo.userName
-        self.authorProfileURL = photo.userProfileImageURL
-        self.createdAtText = PhotoDetailViewModel.formatDate(photo.createdAt)
+        sizeText = "\(photo.width) x \(photo.height)"
+        authorNameText = photo.userName
+        authorProfileURL = photo.userProfileImageURL
+        createdAtText = Self.formatDate(photo.createdAt)
     }
     
     private static func formatDate(_ date: Date?) -> String {
         guard let date else { return "-" }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyyy년 M월 d일 게시됨"
-        return formatter.string(from: date)
+        return FormatterManager.photoCreatedDate.string(from: date)
     }
     
     // MARK: - Input
@@ -138,6 +126,6 @@ final class PhotoDetailViewModel: PhotoDetailViewModelInput, PhotoDetailViewMode
     }
     
     private static func formatNumber(_ value: Int) -> String {
-        numberFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+        FormatterManager.decimalNumber.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 }
