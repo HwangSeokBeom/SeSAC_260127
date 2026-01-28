@@ -35,8 +35,6 @@ enum FormatterManager {
     
     static let iso8601: ISO8601DateFormatter = {
             let f = ISO8601DateFormatter()
-            // 필요하면 formatOptions 조절 가능
-            // f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             return f
         }()
 }
