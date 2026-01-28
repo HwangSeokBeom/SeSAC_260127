@@ -10,6 +10,8 @@ protocol PhotoSearchRepository {
         query: String,
         color: PhotoColorFilter?,
         sort: PhotoSortOption,
+        page: Int,
+        perPage: Int,
         completion: @escaping (Result<[Photo], Error>) -> Void
     )
 }

@@ -19,8 +19,17 @@ final class DefaultPhotoSearchRepository: PhotoSearchRepository {
         query: String,
         color: PhotoColorFilter?,
         sort: PhotoSortOption,
+        page: Int,
+        perPage: Int,
         completion: @escaping (Result<[Photo], Error>) -> Void
     ) {
-        service.search(query: query, color: color, sort: sort, completion: completion)
+        service.search(
+            query: query,
+            color: color,
+            sort: sort,
+            page: page,
+            perPage: perPage,
+            completion: completion
+        )
     }
 }

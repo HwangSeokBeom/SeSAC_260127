@@ -69,13 +69,7 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
         var config = UIButton.Configuration.plain()
         config.baseForegroundColor = .black
         config.baseBackgroundColor = .white
-        config.image = UIImage(
-            systemName: "arrow.up.arrow.down",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 13, weight: .medium)
-        )
-        config.imagePadding = 4
-        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 12)
-        
+  
         var title = AttributedString(" 관련순")
         title.font = .systemFont(ofSize: 14, weight: .medium)
         config.attributedTitle = title
@@ -146,13 +140,15 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
         
         let text: String
         switch viewModel.currentSortOption {
-        case .relevance: text = " 관련순"
-        case .latest:    text = " 최신순"
+        case .relevance:
+            text = " 관련순"
+        case .latest:
+            text = " 최신순"
         }
         
-        var titleAttr = AttributedString(text)
-        titleAttr.font = .systemFont(ofSize: 14, weight: .medium)
-        config.attributedTitle = titleAttr
+        var attributed = AttributedString(text)
+        attributed.font = .systemFont(ofSize: 14, weight: .medium)
+        config.attributedTitle = attributed
         
         sortButton.configuration = config
     }
@@ -297,5 +293,23 @@ extension SearchPhotoViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         viewModel.search(query: searchBar.text ?? "")
         searchBar.resignFirstResponder()
+    }
+}
+
+extension SearchPhotoViewController {
+    
+    // UIScrollViewDelegate (UICollectionViewDelegate가 상속)
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // 메인 그리드 컬렉션뷰인 경우만 체크
+        guard scrollView === collectionView else { return }
+        
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
+        
+        // 아래쪽 1.5 화면 정도 근접하면 다음 페이지 로드
+        if offsetY > contentHeight - height * 1.5 {
+            viewModel.loadNextPage()
+        }
     }
 }

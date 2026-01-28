@@ -25,42 +25,49 @@ final class UnsplashPhotoSearchService: PhotoSearchServicing {
         query: String,
         color: PhotoColorFilter?,
         sort: PhotoSortOption,
+        page: Int,
+        perPage: Int,
         completion: @escaping (Result<[Photo], Error>) -> Void
     ) {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // 정렬 값
-        let orderBy: String
-        switch sort {
-        case .relevance: orderBy = "relevant"
-        case .latest:    orderBy = "latest"
-        }
-        
-        if trimmed.isEmpty {
-            fetchPhotoList(orderBy: orderBy, completion: completion)
-        } else {
-            searchPhotos(
-                query: trimmed,
-                color: color,
-                orderBy: orderBy,
+        guard !trimmed.isEmpty else {
+            fetchPhotoList(
+                page: page,
+                perPage: perPage,
                 completion: completion
             )
+            return
         }
+        
+        let orderBy: String
+        switch sort {
+        case .latest:
+            orderBy = "latest"
+        case .relevance:
+            orderBy = "relevant"
+        }
+        
+        searchPhotos(
+            query: trimmed,
+            color: color,
+            page: page,
+            perPage: perPage,
+            orderBy: orderBy,
+            completion: completion
+        )
     }
     
-    // MARK: - Private
-    
-    /// /photos (전체 목록)
     private func fetchPhotoList(
-        orderBy: String,
+        page: Int,
+        perPage: Int,
         completion: @escaping (Result<[Photo], Error>) -> Void
     ) {
         let url = "https://api.unsplash.com/photos"
         
         let params: Parameters = [
-            "page": 1,
-            "per_page": 20,
-            "order_by": orderBy,
+            "page": page,
+            "per_page": perPage,
             "client_id": apiKey
         ]
         
@@ -82,10 +89,11 @@ final class UnsplashPhotoSearchService: PhotoSearchServicing {
         }
     }
     
-    /// /search/photos (검색)
     private func searchPhotos(
         query: String,
         color: PhotoColorFilter?,
+        page: Int,
+        perPage: Int,
         orderBy: String,
         completion: @escaping (Result<[Photo], Error>) -> Void
     ) {
@@ -93,8 +101,8 @@ final class UnsplashPhotoSearchService: PhotoSearchServicing {
         
         var params: Parameters = [
             "query": query,
-            "page": 1,
-            "per_page": 20,
+            "page": page,
+            "per_page": perPage,
             "order_by": orderBy,
             "client_id": apiKey
         ]

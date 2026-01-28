@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 final class DefaultTopicRepository: TopicRepository {
     
     private let service: TopicAPIService
