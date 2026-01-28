@@ -31,5 +31,17 @@ enum PhotoSortOption {
     case latest
 }
 
+struct PhotoStatistics {
+    let width: Int
+    let height: Int
+    let totalViews: Int
+    let totalDownloads: Int
+    let viewsHistory: [DailyStat]
+    let downloadsHistory: [DailyStat]
+}
 
+struct DailyStat {
+    let date: Date
+    let value: Int
+}
 
