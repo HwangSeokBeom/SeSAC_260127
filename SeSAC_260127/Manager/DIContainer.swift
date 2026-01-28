@@ -35,4 +35,18 @@ final class DIContainer {
         let vc = SearchPhotoViewController(viewModel: viewModel)
         return vc
     }
+    
+    func makePhotoDetailViewController(photo: Photo) -> PhotoDetailViewController {
+        let service = UnsplashPhotoStatisticsService(
+            apiKey: APIKey.unsplash,
+            network: NetworkManager.shared
+        )
+        let repository = DefaultPhotoStatisticsRepository(service: service)
+        
+        let viewModel = PhotoDetailViewModel(
+            photo: photo,
+            repository: repository
+        )
+        return PhotoDetailViewController(viewModel: viewModel)
+    }
 }

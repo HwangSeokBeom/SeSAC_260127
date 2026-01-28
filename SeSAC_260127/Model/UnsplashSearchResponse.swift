@@ -13,8 +13,12 @@ struct UnsplashSearchResponse: Decodable {
 
 struct UnsplashPhotoDTO: Decodable {
     let id: String
+    let width: Int
+    let height: Int
     let likes: Int
     let urls: URLInfo
+    let user: UserDTO
+    let created_at: String          
     let description: String?
     let alt_description: String?
     
@@ -22,16 +26,41 @@ struct UnsplashPhotoDTO: Decodable {
         let small: String
         let regular: String?
     }
+    
+    struct UserDTO: Decodable {
+        let name: String
+        let profile_image: ProfileImageDTO
+        
+        struct ProfileImageDTO: Decodable {
+            let small: String
+            let medium: String?
+        }
+    }
 }
 
 extension UnsplashPhotoDTO {
+    
     func toDomainPhoto() -> Photo {
-        let urlString = urls.small
+        let imageURL = URL(string: urls.small)
+        let profileURL = URL(string: user.profile_image.small)
+        
+        let date: Date?
+        if let parsed = ISO8601DateFormatter().date(from: created_at) {
+            date = parsed
+        } else {
+            date = nil
+        }
+        
         return Photo(
             id: id,
-            imageURL: URL(string: urlString),
+            imageURL: imageURL,
             likeCount: likes,
-            isFavorite: false
+            isFavorite: false,
+            width: width,
+            height: height,
+            userName: user.name,
+            userProfileImageURL: profileURL,
+            createdAt: date
         )
     }
     
@@ -43,3 +72,4 @@ extension UnsplashPhotoDTO {
         )
     }
 }
+

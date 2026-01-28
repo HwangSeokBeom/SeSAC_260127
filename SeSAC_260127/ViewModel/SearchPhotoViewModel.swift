@@ -24,12 +24,19 @@ protocol SearchPhotoViewModelOutput: AnyObject {
     
     var onUpdate: (() -> Void)? { get set }
     var onError: ((String) -> Void)? { get set }
+    
+    /// 디테일 화면 진입 시 사용할 도메인 모델
+    func photo(at index: Int) -> Photo
 }
 
 final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewModelOutput {
     
     // MARK: - Output State
     
+    /// 도메인 레이어 데이터
+    private var photos: [Photo] = []
+    
+    /// 프레젠테이션 레이어 데이터 (컬렉션뷰 셀용)
     private(set) var items: [PhotoCellModel] = [] {
         didSet {
             isEmpty = items.isEmpty
@@ -63,49 +70,62 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         }
     }
     
+    // MARK: - Domain Access
+    
+    func photo(at index: Int) -> Photo {
+        guard photos.indices.contains(index) else {
+            assertionFailure("photo(at:) index out of range. index: \(index), photos.count: \(photos.count)")
+            return photos.last ?? Photo(
+                id: "",
+                imageURL: nil,
+                likeCount: 0,
+                isFavorite: false,
+                width: 0,
+                height: 0,
+                userName: "",
+                userProfileImageURL: nil,
+                createdAt: nil
+            )
+        }
+        return photos[index]
+    }
+    
     // MARK: - Input
     
     func search(query: String) {
         currentQuery = query
         page = 1
         hasMore = true
-        items = []              // 새 검색이므로 기존 목록 초기화
-        request(reset: true)
-    }
-
-    /// 컬러 필터 선택
-    func selectColor(at index: Int) {
-        selectedColorIndex = index
-        guard !currentQuery.isEmpty else {
-            // 검색어가 없으면 컬러만 바꿔도 전체 리스트로 재요청
-            page = 1
-            hasMore = true
-            items = []
-            request(reset: true)
-            return
-        }
-        // 검색어가 있는 상태면 현재 쿼리로 재검색
-        page = 1
-        hasMore = true
+    
+        photos = []
         items = []
+        
         request(reset: true)
     }
     
-    /// 정렬 토글 (오름차순 <-> 내림차순)
-    func toggleSort() {
-        currentSortOption = (currentSortOption == .latest) ? .relevance : .latest
-        guard !currentQuery.isEmpty else {
-            // 쿼리 없이 "최신 사진 전체 보기" + 정렬 바꿨을 때
-            page = 1
-            hasMore = true
-            items = []
-            request(reset: true)
-            return
-        }
-        // 검색어 있는 상태에서 정렬 변경 시 재검색
+    /// 컬러 필터 선택
+    func selectColor(at index: Int) {
+        selectedColorIndex = index
+        
         page = 1
         hasMore = true
+        
+        photos = []
         items = []
+        
+        request(reset: true)
+    }
+    
+    /// 정렬 토글 (최신 <-> 관련도)
+    func toggleSort() {
+        currentSortOption = (currentSortOption == .latest) ? .relevance : .latest
+        
+        page = 1
+        hasMore = true
+        
+        photos = []
+        items = []
+        
         request(reset: true)
     }
     
@@ -136,27 +156,36 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
             
             switch result {
             case .success(let photos):
-                let models = photos.map(PhotoCellModel.init(domain:))
-                
-                if reset {
-                    self.items = models
-                } else {
-                    self.items.append(contentsOf: models)
-                }
-                
-                // 받아온 개수가 pageSize보다 작으면 다음 페이지 없음
-                if models.count < self.pageSize {
-                    self.hasMore = false
-                } else {
-                    self.page += 1
-                }
+                self.apply(photos: photos, reset: reset)
                 
             case .failure(let error):
                 if reset {
+                    self.photos = []
                     self.items = []
                 }
                 self.onError?("검색 실패: \(error.localizedDescription)")
             }
+        }
+    }
+    
+    /// 도메인 + 프레젠테이션 동기화
+    private func apply(photos newPhotos: [Photo], reset: Bool) {
+        if reset {
+            // ✅ 새 검색이면 통째로 교체
+            self.photos = newPhotos
+            self.items = newPhotos.map { PhotoCellModel(domain: $0) }
+        } else {
+            // ✅ 페이지네이션이면 append
+            self.photos.append(contentsOf: newPhotos)
+            let models = newPhotos.map { PhotoCellModel(domain: $0) }
+            self.items.append(contentsOf: models)
+        }
+        
+        // 페이지네이션 상태 업데이트
+        if newPhotos.count < pageSize {
+            hasMore = false
+        } else {
+            page += 1
         }
     }
 }

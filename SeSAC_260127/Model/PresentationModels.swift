@@ -56,3 +56,95 @@ extension FilterCellModel {
         self.color  = filter.color
     }
 }
+
+struct PhotoDetailHeaderModel {
+    let mainImageURL: URL?
+    let userName: String
+    let userProfileImageURL: URL?
+    let createdAtText: String
+    let sizeText: String
+    let likeCountText: String
+}
+
+struct PhotoDetailStatisticsModel {
+    let totalViewsText: String
+    let totalDownloadsText: String
+    let viewsHistory: [DailyStatCellModel]
+    let downloadsHistory: [DailyStatCellModel]
+}
+
+struct DailyStatCellModel {
+    let dateText: String
+    let valueText: String
+}
+
+// MARK: - Mapping from Domain
+
+extension PhotoDetailHeaderModel {
+    
+    private static let numberFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        return f
+    }()
+    
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        f.timeStyle = .none
+        // 필요하면 locale 설정
+        // f.locale = Locale(identifier: "ko_KR")
+        return f
+    }()
+    
+    init(domain: Photo) {
+        self.mainImageURL = domain.imageURL
+        self.userName = domain.userName
+        self.userProfileImageURL = domain.userProfileImageURL
+        
+        if let createdAt = domain.createdAt {
+            self.createdAtText = Self.dateFormatter.string(from: createdAt)
+        } else {
+            self.createdAtText = "날짜 정보 없음"
+        }
+        
+        self.sizeText = "\(domain.width) x \(domain.height)"
+        self.likeCountText = Self.numberFormatter.string(from: domain.likeCount as NSNumber)
+            ?? "\(domain.likeCount)"
+    }
+}
+
+extension PhotoDetailStatisticsModel {
+    
+    private static let numberFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        return f
+    }()
+    
+    init(domain: PhotoStatistics) {
+        self.totalViewsText = Self.numberFormatter.string(from: domain.totalViews as NSNumber)
+            ?? "\(domain.totalViews)"
+        self.totalDownloadsText = Self.numberFormatter.string(from: domain.totalDownloads as NSNumber)
+            ?? "\(domain.totalDownloads)"
+        
+        self.viewsHistory = domain.viewsHistory.map { DailyStatCellModel(domain: $0) }
+        self.downloadsHistory = domain.downloadsHistory.map { DailyStatCellModel(domain: $0) }
+    }
+}
+
+extension DailyStatCellModel {
+    
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .short
+        f.timeStyle = .none
+        // f.locale = Locale(identifier: "ko_KR")
+        return f
+    }()
+    
+    init(domain: DailyStat) {
+        self.dateText = Self.dateFormatter.string(from: domain.date)
+        self.valueText = "\(domain.value)"
+    }
+}

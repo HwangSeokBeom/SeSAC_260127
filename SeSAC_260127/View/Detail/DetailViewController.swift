@@ -7,13 +7,46 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 
-final class PhotoDetailViewController: UIViewController {
+final class PhotoDetailViewController: UIViewController, ViewDesignProtocol {
     
-    // MARK: - UI Components
+    private let viewModel: (PhotoDetailViewModelInput & PhotoDetailViewModelOutput)
+    
+    init(viewModel: some PhotoDetailViewModelInput & PhotoDetailViewModelOutput) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     private let scrollView = UIScrollView()
     private let contentView = UIView()
+    
+    private let authorImageView: UIImageView = {
+        let iv = UIImageView()
+        iv.clipsToBounds = true
+        iv.layer.cornerRadius = 18
+        iv.contentMode = .scaleAspectFill
+        iv.backgroundColor = .secondarySystemBackground
+        return iv
+    }()
+    
+    private let authorNameLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .semibold)
+        return label
+    }()
+    
+    private let createdAtLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = .secondaryLabel
+        return label
+    }()
     
     private let likeButton: UIButton = {
         let button = UIButton(type: .system)
@@ -21,29 +54,6 @@ final class PhotoDetailViewController: UIViewController {
         button.setImage(UIImage(systemName: "heart", withConfiguration: config), for: .normal)
         button.tintColor = .systemBlue
         return button
-    }()
-    
-    private let profileImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.layer.cornerRadius = 16
-        iv.clipsToBounds = true
-        iv.contentMode = .scaleAspectFill
-        iv.backgroundColor = .lightGray
-        return iv
-    }()
-    
-    private let usernameLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .semibold)
-        label.textColor = .label
-        return label
-    }()
-    
-    private let dateLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 13)
-        label.textColor = .secondaryLabel
-        return label
     }()
     
     private let mainImageView: UIImageView = {
@@ -54,25 +64,60 @@ final class PhotoDetailViewController: UIViewController {
         return iv
     }()
     
-    // MARK: Info Section
-    
     private let infoTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "정보"
         label.font = .systemFont(ofSize: 15, weight: .semibold)
+        return label
+    }()
+    
+    private let sizeTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "크기"
+        label.font = .systemFont(ofSize: 14, weight: .medium)
         label.textColor = .label
         return label
     }()
     
-    private let sizeTitleLabel = makeInfoKeyLabel("크기")
-    private let viewsTitleLabel = makeInfoKeyLabel("조회수")
-    private let downloadsTitleLabel = makeInfoKeyLabel("다운로드")
+    private let viewsTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "조회수"
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = .label
+        return label
+    }()
     
-    private let sizeValueLabel = makeInfoValueLabel()
-    private let viewsValueLabel = makeInfoValueLabel()
-    private let downloadsValueLabel = makeInfoValueLabel()
+    private let downloadsTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "다운로드"
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = .label
+        return label
+    }()
     
-    // MARK: Chart Section
+    private let sizeValueLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .right
+        return label
+    }()
+    
+    private let viewsValueLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .right
+        return label
+    }()
+    
+    private let downloadsValueLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .right
+        return label
+    }()
     
     private let chartTitleLabel: UILabel = {
         let label = UILabel()
@@ -85,8 +130,6 @@ final class PhotoDetailViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("조회", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-        button.backgroundColor = .systemGray5
-        button.setTitleColor(.label, for: .normal)
         button.layer.cornerRadius = 6
         return button
     }()
@@ -95,87 +138,63 @@ final class PhotoDetailViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("다운로드", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-        button.backgroundColor = .systemGray5
-        button.setTitleColor(.label, for: .normal)
         button.layer.cornerRadius = 6
         return button
     }()
     
     private let chartView: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemBlue.withAlphaComponent(0.2)
+        view.backgroundColor = .systemBlue.withAlphaComponent(0.15)
         view.layer.cornerRadius = 8
         return view
     }()
     
-    // MARK: - LifeCycle
+    private let activityIndicator = UIActivityIndicatorView(style: .medium)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
         
-        setupNavigationItem()
+        configureView()
         configureHierarchy()
         configureLayout()
-        configureData()
+        configureActions()
+        bindViewModel()
+        applyInitialData()
+        
+        viewModel.load()
     }
+}
+
+extension PhotoDetailViewController {
     
-    // MARK: - Navigation
-    
-    private func setupNavigationItem() {
-        // 제목은 필요하면 수정
+    func configureView() {
+        view.backgroundColor = .systemBackground
         navigationItem.title = "사진 상세"
         
-        // 커스텀 백 버튼
         let backButton = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
         backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: config), for: .normal)
         backButton.tintColor = .label
         backButton.addTarget(self, action: #selector(didTapBack), for: .touchUpInside)
-        backButton.sizeToFit()
-        
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
-        
-        // 스와이프 뒤로가기 제스처 유지
-        navigationController?.interactivePopGestureRecognizer?.delegate = nil
-        
-        // 오른쪽에 좋아요 버튼
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: likeButton)
     }
     
-    @objc private func didTapBack() {
-        navigationController?.popViewController(animated: true)
-    }
-}
-
-// MARK: - Setup UI
-
-extension PhotoDetailViewController {
-    
-    private func configureHierarchy() {
+    func configureHierarchy() {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        contentView.addSubview(profileImageView)
-        contentView.addSubview(usernameLabel)
-        contentView.addSubview(dateLabel)
-        contentView.addSubview(mainImageView)
+        [authorImageView, authorNameLabel, createdAtLabel,
+         mainImageView, infoTitleLabel, sizeTitleLabel, viewsTitleLabel,
+         downloadsTitleLabel, sizeValueLabel, viewsValueLabel,
+         downloadsValueLabel, chartTitleLabel, viewsButton,
+         downloadsButton, chartView]
+            .forEach { contentView.addSubview($0) }
         
-        contentView.addSubview(infoTitleLabel)
-        contentView.addSubview(sizeTitleLabel)
-        contentView.addSubview(viewsTitleLabel)
-        contentView.addSubview(downloadsTitleLabel)
-        contentView.addSubview(sizeValueLabel)
-        contentView.addSubview(viewsValueLabel)
-        contentView.addSubview(downloadsValueLabel)
-        
-        contentView.addSubview(chartTitleLabel)
-        contentView.addSubview(viewsButton)
-        contentView.addSubview(downloadsButton)
-        contentView.addSubview(chartView)
+        view.addSubview(activityIndicator)
     }
     
-    private func configureLayout() {
+    func configureLayout() {
         scrollView.snp.makeConstraints { make in
             make.edges.equalTo(view.safeAreaLayoutGuide)
         }
@@ -185,26 +204,23 @@ extension PhotoDetailViewController {
             make.width.equalToSuperview()
         }
         
-        profileImageView.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(16)
-            make.leading.equalToSuperview().inset(16)
-            make.width.height.equalTo(32)
+        authorImageView.snp.makeConstraints { make in
+            make.top.leading.equalToSuperview().offset(16)
+            make.width.height.equalTo(36)
         }
         
-        usernameLabel.snp.makeConstraints { make in
-            make.top.equalTo(profileImageView.snp.top)
-            make.leading.equalTo(profileImageView.snp.trailing).offset(8)
-            make.trailing.lessThanOrEqualToSuperview().inset(16)
+        authorNameLabel.snp.makeConstraints { make in
+            make.top.equalTo(authorImageView)
+            make.leading.equalTo(authorImageView.snp.trailing).offset(8)
         }
         
-        dateLabel.snp.makeConstraints { make in
-            make.top.equalTo(usernameLabel.snp.bottom).offset(2)
-            make.leading.equalTo(usernameLabel)
-            make.trailing.lessThanOrEqualToSuperview().inset(16)
+        createdAtLabel.snp.makeConstraints { make in
+            make.leading.equalTo(authorNameLabel)
+            make.top.equalTo(authorNameLabel.snp.bottom).offset(2)
         }
         
         mainImageView.snp.makeConstraints { make in
-            make.top.equalTo(profileImageView.snp.bottom).offset(16)
+            make.top.equalTo(authorImageView.snp.bottom).offset(16)
             make.leading.trailing.equalToSuperview()
             make.height.equalTo(240)
         }
@@ -260,7 +276,6 @@ extension PhotoDetailViewController {
             make.centerY.equalTo(viewsButton)
             make.leading.equalTo(viewsButton.snp.trailing).offset(8)
             make.height.equalTo(28)
-            make.width.equalTo(84)
         }
         
         chartView.snp.makeConstraints { make in
@@ -269,35 +284,96 @@ extension PhotoDetailViewController {
             make.height.equalTo(200)
             make.bottom.equalToSuperview().offset(-32)
         }
+        
+        activityIndicator.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
+    }
+}
+    
+extension PhotoDetailViewController {
+    
+    func configureActions() {
+        viewsButton.addTarget(self, action: #selector(didTapViews), for: .touchUpInside)
+        downloadsButton.addTarget(self, action: #selector(didTapDownloads), for: .touchUpInside)
     }
     
-    private func configureData() {
-        // 테스트용 더미 데이터
-        usernameLabel.text = "Brayden Prato"
-        dateLabel.text = "2024년 7월 3일 게시됨"
-        sizeValueLabel.text = "3098 x 3872"
-        viewsValueLabel.text = "1,548,623"
-        downloadsValueLabel.text = "388,996"
+    func bindViewModel() {
+        viewModel.onLoadingChange = { [weak self] loading in
+            loading ? self?.activityIndicator.startAnimating()
+                    : self?.activityIndicator.stopAnimating()
+        }
         
-        // mainImageView / profileImageView는 나중에 실제 이미지로 교체
-        mainImageView.image = UIImage(named: "sample_photo") // 없는 경우 그냥 배경색만 보임
+        viewModel.onUpdate = { [weak self] in
+            self?.updateStatistics()
+            self?.updateChartButtons()
+            self?.updateChartView()
+        }
+        
+        viewModel.onError = { message in
+            print("Detail Error:", message)
+        }
     }
 }
 
-// MARK: - Helper
-
-private func makeInfoKeyLabel(_ text: String) -> UILabel {
-    let label = UILabel()
-    label.text = text
-    label.font = .systemFont(ofSize: 14, weight: .medium)
-    label.textColor = .label
-    return label
+extension PhotoDetailViewController {
+    
+    private func applyInitialData() {
+        authorNameLabel.text = viewModel.authorNameText
+        createdAtLabel.text = viewModel.createdAtText
+        
+        if let url = viewModel.authorProfileURL {
+            authorImageView.kf.setImage(with: url)
+        }
+        
+        if let url = viewModel.photo.imageURL {
+            mainImageView.kf.setImage(with: url)
+        }
+        
+        sizeValueLabel.text = viewModel.sizeText
+        viewsValueLabel.text = viewModel.viewsText
+        downloadsValueLabel.text = viewModel.downloadsText
+        
+        updateChartButtons()
+    }
+    
+    private func updateStatistics() {
+        sizeValueLabel.text = viewModel.sizeText
+        viewsValueLabel.text = viewModel.viewsText
+        downloadsValueLabel.text = viewModel.downloadsText
+    }
+    
+    private func updateChartButtons() {
+        let selected = viewModel.selectedChartType
+        let style: (UIButton, Bool) -> Void = { btn, selected in
+            if selected {
+                btn.backgroundColor = .label
+                btn.setTitleColor(.systemBackground, for: .normal)
+            } else {
+                btn.backgroundColor = .systemGray5
+                btn.setTitleColor(.label, for: .normal)
+            }
+        }
+        style(viewsButton, selected == .views)
+        style(downloadsButton, selected == .downloads)
+    }
+    
+    private func updateChartView() {
+        // TODO: 실제 차트로 바꿀 자리
+    }
 }
 
-private func makeInfoValueLabel() -> UILabel {
-    let label = UILabel()
-    label.font = .systemFont(ofSize: 14)
-    label.textColor = .secondaryLabel
-    label.textAlignment = .right
-    return label
+extension PhotoDetailViewController {
+    
+    @objc private func didTapBack() {
+        navigationController?.popViewController(animated: true)
+    }
+    
+    @objc private func didTapViews() {
+        viewModel.selectChartType(.views)
+    }
+    
+    @objc private func didTapDownloads() {
+        viewModel.selectChartType(.downloads)
+    }
 }

@@ -258,9 +258,13 @@ extension SearchPhotoViewController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
-        if collectionView === filterCollectionView {
-            viewModel.selectColor(at: indexPath.item)
-        }
+        guard collectionView === self.collectionView else { return }
+        
+        // 셀 모델이 아니라 도메인 Photo를 꺼낸다
+        let photo = viewModel.photo(at: indexPath.item)
+        
+        let detailVC = DIContainer.shared.makePhotoDetailViewController(photo: photo)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
 
@@ -313,3 +317,5 @@ extension SearchPhotoViewController {
         }
     }
 }
+
+

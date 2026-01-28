@@ -24,6 +24,12 @@ struct Photo {
     let imageURL: URL?
     let likeCount: Int
     let isFavorite: Bool
+    
+    let width: Int
+    let height: Int
+    let userName: String
+    let userProfileImageURL: URL?
+    let createdAt: Date?
 }
 
 enum PhotoSortOption {
