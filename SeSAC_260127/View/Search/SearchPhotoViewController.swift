@@ -254,12 +254,17 @@ extension SearchPhotoViewController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
-        guard collectionView === self.collectionView else { return }
         
-        let photo = viewModel.photo(at: indexPath.item)
+        if collectionView === filterCollectionView {
+            viewModel.selectColor(at: indexPath.item)
+            return
+        }
         
-        let detailVC = DIContainer.shared.makePhotoDetailViewController(photo: photo)
-        navigationController?.pushViewController(detailVC, animated: true)
+        if collectionView === self.collectionView {
+            let photo = viewModel.photo(at: indexPath.item)
+            let detailVC = DIContainer.shared.makePhotoDetailViewController(photo: photo)
+            navigationController?.pushViewController(detailVC, animated: true)
+        }
     }
 }
 
