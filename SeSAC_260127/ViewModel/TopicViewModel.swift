@@ -4,7 +4,7 @@
 //  Created by Hwangseokbeom on 1/26/26.
 //
 
-import UIKit
+import Foundation
 
 // MARK: - Protocols
 
@@ -18,8 +18,7 @@ protocol TopicViewModelOutput: AnyObject {
     
     func titleForSection(_ section: Int) -> String
     func numberOfItems(in section: Int) -> Int
-    func cellViewModel(at indexPath: IndexPath) -> TopicCellModel
-
+    func cellViewModel(section: Int, item: Int) -> TopicCellModel 
     var onUpdate: (() -> Void)? { get set }
     var onError: ((String) -> Void)? { get set }
 }
@@ -81,8 +80,8 @@ final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
         sections[section].items.count
     }
 
-    func cellViewModel(at indexPath: IndexPath) -> TopicCellModel {
-        let item = sections[indexPath.section].items[indexPath.item]
+    func cellViewModel(section: Int, item: Int) -> TopicCellModel {
+        let item = sections[section].items[item]
         return TopicCellModel(domain: item)
     }
 }

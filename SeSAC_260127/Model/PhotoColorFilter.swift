@@ -7,6 +7,8 @@
 
 import UIKit
 
+import Foundation
+
 enum PhotoColorFilter: CaseIterable {
     case black, white, yellow, red, orange, green, blue, purple
     
@@ -20,19 +22,6 @@ enum PhotoColorFilter: CaseIterable {
         case .green: return "그린"
         case .blue: return "블루"
         case .purple: return "퍼플"
-        }
-    }
-    
-    var color: UIColor {
-        switch self {
-        case .black: return .black
-        case .white: return .white
-        case .yellow: return .systemYellow
-        case .red: return .systemRed
-        case .orange: return .systemOrange
-        case .green: return .systemGreen
-        case .blue: return .systemBlue
-        case .purple: return .systemPurple
         }
     }
 }

@@ -144,8 +144,6 @@ final class TopicViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDataSource
-
 extension TopicViewController: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -164,8 +162,11 @@ extension TopicViewController: UICollectionViewDataSource {
             for: indexPath
         ) as! TopicCollectionViewCell
         
-        let vm = viewModel.cellViewModel(at: indexPath)   // 🔹 여기 변경
-        cell.configure(with: vm)
+        let model = viewModel.cellViewModel(
+            section: indexPath.section,
+            item: indexPath.item
+        )
+        cell.configure(with: model)
         return cell
     }
     

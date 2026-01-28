@@ -93,6 +93,6 @@ final class FilterCell: UICollectionViewCell {
     
     func configure(with viewModel: FilterCellModel) {
         titleLabel.text = viewModel.title
-        colorView.backgroundColor = viewModel.color
+        colorView.backgroundColor = viewModel.filter.uiColor
     }
 }

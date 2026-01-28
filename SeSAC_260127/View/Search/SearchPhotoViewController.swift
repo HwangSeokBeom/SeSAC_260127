@@ -30,7 +30,7 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
         return bar
     }()
     
-    // 색상 필터 컬렉션뷰 (가로 스크롤)
+    // 색상 필터 컬렉션뷰
     private lazy var filterCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -45,7 +45,6 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.allowsMultipleSelection = false
-        // 정렬 버튼이 오른쪽 위에 겹치니까 여유 공간
         collectionView.contentInset.right = 90
         return collectionView
     }()
@@ -159,11 +158,9 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     }
     
     func configureHierarchy() {
-        view.addSubview(searchBar)
-        view.addSubview(filterCollectionView)
-        view.addSubview(collectionView)
-        view.addSubview(sortButton)
-        view.addSubview(emptyLabel)
+        
+        [ searchBar, filterCollectionView, collectionView, sortButton, emptyLabel].forEach { view.addSubview($0) }
+        
     }
     
     func configureLayout() {
@@ -180,7 +177,6 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
             make.height.equalTo(40)
         }
         
-        // 정렬 플로팅 버튼: 필터 라인 오른쪽에 떠 있게
         sortButton.snp.makeConstraints { make in
             make.centerY.equalTo(filterCollectionView.snp.centerY)
             make.trailing.equalTo(safe).inset(16)
@@ -260,7 +256,6 @@ extension SearchPhotoViewController: UICollectionViewDelegate {
                         didSelectItemAt indexPath: IndexPath) {
         guard collectionView === self.collectionView else { return }
         
-        // 셀 모델이 아니라 도메인 Photo를 꺼낸다
         let photo = viewModel.photo(at: indexPath.item)
         
         let detailVC = DIContainer.shared.makePhotoDetailViewController(photo: photo)
@@ -278,11 +273,9 @@ extension SearchPhotoViewController: UICollectionViewDelegateFlowLayout {
             let font = UIFont.systemFont(ofSize: 14, weight: .medium)
             let textWidth = (option.title as NSString)
                 .size(withAttributes: [.font: font]).width
-            // 좌우 inset(10+10) + 색상 동그라미(16) + 텍스트 좌우 여유(6)
             let width = 10 + 16 + 6 + textWidth + 10
             return CGSize(width: width, height: 32)
         } else {
-            // 메인 그리드 컬렉션뷰는 레이아웃에 설정된 itemSize 그대로 사용
             if let flowLayout = collectionViewLayout as? UICollectionViewFlowLayout {
                 return flowLayout.itemSize
             } else {
@@ -302,16 +295,13 @@ extension SearchPhotoViewController: UISearchBarDelegate {
 
 extension SearchPhotoViewController {
     
-    // UIScrollViewDelegate (UICollectionViewDelegate가 상속)
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // 메인 그리드 컬렉션뷰인 경우만 체크
         guard scrollView === collectionView else { return }
         
         let offsetY = scrollView.contentOffset.y
         let contentHeight = scrollView.contentSize.height
         let height = scrollView.frame.size.height
         
-        // 아래쪽 1.5 화면 정도 근접하면 다음 페이지 로드
         if offsetY > contentHeight - height * 1.5 {
             viewModel.loadNextPage()
         }

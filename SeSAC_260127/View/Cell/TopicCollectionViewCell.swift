@@ -9,7 +9,7 @@
 
 import UIKit
 import SnapKit
-import Kingfisher   // 👈 추가
+import Kingfisher
 
 final class TopicCollectionViewCell: UICollectionViewCell {
 
@@ -55,8 +55,10 @@ final class TopicCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         configureHierarchy()
         configureLayout()
+        configureView()
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -103,14 +105,26 @@ final class TopicCollectionViewCell: UICollectionViewCell {
             make.centerY.equalToSuperview()
         }
     }
-
-    func configure(with viewModel: TopicCellModel) {
-        likeLabel.text = viewModel.likeCountText
+    
+    private func configureView() {
+        contentView.layer.cornerRadius = 16
+        contentView.layer.masksToBounds = false
+        contentView.backgroundColor = .secondarySystemBackground
         
-        if let url = viewModel.imageURL {
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.08
+        layer.shadowRadius = 8
+        layer.shadowOffset = CGSize(width: 0, height: 4)
+    }
+   
+    func configure(with model: TopicCellModel) {
+        likeLabel.text = model.likeCountText
+        
+        if let url = model.imageURL {
             cardImageView.kf.setImage(with: url)
         } else {
             cardImageView.image = nil
+            cardImageView.backgroundColor = .systemGray5
         }
     }
 }

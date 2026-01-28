@@ -5,9 +5,7 @@
 //  Created by Hwangseokbeom on 1/27/26.
 //
 
-import UIKit
-
-// MARK: - Topic Cell
+import Foundation
 
 struct TopicCellModel {
     let title: String
@@ -46,13 +44,13 @@ extension PhotoCellModel {
 
 struct FilterCellModel {
     let title: String
-    let color: UIColor
+    let filter: PhotoColorFilter
 }
 
 extension FilterCellModel {
     init(filter: PhotoColorFilter) {
         self.title = filter.title
-        self.color  = filter.color
+        self.filter = filter 
     }
 }
 

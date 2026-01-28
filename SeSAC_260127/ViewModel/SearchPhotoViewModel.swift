@@ -24,38 +24,35 @@ protocol SearchPhotoViewModelOutput: AnyObject {
     
     var onUpdate: (() -> Void)? { get set }
     var onError: ((String) -> Void)? { get set }
+    var onLoadingChange: ((Bool) -> Void)? { get set }
     
-    /// 디테일 화면 진입 시 사용할 도메인 모델
     func photo(at index: Int) -> Photo
 }
 
 final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewModelOutput {
     
-    // MARK: - Output State
-    
-    /// 도메인 레이어 데이터
     private var photos: [Photo] = []
     
-    /// 프레젠테이션 레이어 데이터 (컬렉션뷰 셀용)
     private(set) var items: [PhotoCellModel] = [] {
         didSet {
-            isEmpty = items.isEmpty
             onUpdate?()
         }
     }
     
     private(set) var filters: [FilterCellModel]
-    private(set) var isEmpty: Bool = true
+    
+    var isEmpty: Bool {
+        items.isEmpty
+    }
+    
     private(set) var currentSortOption: PhotoSortOption = .latest
-    
-    var onUpdate: (() -> Void)?
-    var onError: ((String) -> Void)?
-    
-    // MARK: - Internal State
-    
     private(set) var selectedColorIndex: Int = 0
     private(set) var currentQuery: String = ""
     
+    var onUpdate: (() -> Void)?
+    var onError: ((String) -> Void)?
+    var onLoadingChange: ((Bool) -> Void)?
+     
     private let repository: PhotoSearchRepository
     
     private var page: Int = 1
@@ -65,12 +62,8 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     
     init(repository: PhotoSearchRepository) {
         self.repository = repository
-        self.filters = PhotoColorFilter.allCases.map {
-            FilterCellModel(filter: $0)
-        }
+        self.filters = PhotoColorFilter.allCases.map { FilterCellModel(filter: $0) }
     }
-    
-    // MARK: - Domain Access
     
     func photo(at index: Int) -> Photo {
         guard photos.indices.contains(index) else {
@@ -89,57 +82,42 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         }
         return photos[index]
     }
-    
-    // MARK: - Input
-    
+      
     func search(query: String) {
         currentQuery = query
-        page = 1
-        hasMore = true
-    
-        photos = []
-        items = []
-        
+        resetStateForNewRequest()
         request(reset: true)
     }
     
-    /// 컬러 필터 선택
     func selectColor(at index: Int) {
         selectedColorIndex = index
-        
-        page = 1
-        hasMore = true
-        
-        photos = []
-        items = []
-        
+        resetStateForNewRequest()
         request(reset: true)
     }
     
-    /// 정렬 토글 (최신 <-> 관련도)
     func toggleSort() {
         currentSortOption = (currentSortOption == .latest) ? .relevance : .latest
-        
-        page = 1
-        hasMore = true
-        
-        photos = []
-        items = []
-        
+        resetStateForNewRequest()
         request(reset: true)
     }
     
-    /// 스크롤 끝 근처에서 호출해 줄 "다음 페이지 로드"
     func loadNextPage() {
         guard !isLoading, hasMore else { return }
         request(reset: false)
     }
-    
-    // MARK: - Private
-    
+      
+    private func resetStateForNewRequest() {
+        page = 1
+        hasMore = true
+        
+        photos = []
+        items = []
+    }
+
     private func request(reset: Bool) {
-        if isLoading { return }
+        guard !isLoading else { return }
         isLoading = true
+        onLoadingChange?(true)
         
         let color = PhotoColorFilter.allCases[safe: selectedColorIndex]
         let sort = currentSortOption
@@ -153,6 +131,7 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         ) { [weak self] result in
             guard let self else { return }
             self.isLoading = false
+            self.onLoadingChange?(false)
             
             switch result {
             case .success(let photos):
@@ -168,14 +147,11 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         }
     }
     
-    /// 도메인 + 프레젠테이션 동기화
     private func apply(photos newPhotos: [Photo], reset: Bool) {
         if reset {
-            // ✅ 새 검색이면 통째로 교체
             self.photos = newPhotos
             self.items = newPhotos.map { PhotoCellModel(domain: $0) }
         } else {
-            // ✅ 페이지네이션이면 append
             self.photos.append(contentsOf: newPhotos)
             let models = newPhotos.map { PhotoCellModel(domain: $0) }
             self.items.append(contentsOf: models)
@@ -189,8 +165,6 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         }
     }
 }
-
-// MARK: - Safe Index
 
 private extension Collection {
     subscript(safe index: Index) -> Element? {
