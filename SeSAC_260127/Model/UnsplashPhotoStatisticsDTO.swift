@@ -22,34 +22,33 @@ struct UnsplashPhotoStatisticsDTO: Decodable {
     }
     
     struct ValueDTO: Decodable {
-        let date: String  // "2024-01-01T00:00:00Z"
+        let date: String 
         let value: Int
     }
 }
 
 extension UnsplashPhotoStatisticsDTO {
-    
+
     func toDomain(width: Int, height: Int) -> PhotoStatistics {
-        
-        let dateFormatter = FormatterManager.iso8601
-        
-        let viewsHistory: [DailyStat] = views.historical.values.compactMap { v in
-            guard let date = dateFormatter.date(from: v.date) else { return nil }
-            return DailyStat(date: date, value: v.value)
+
+        let df = FormatterManager.iso8601
+
+        func map(_ values: [ValueDTO]) -> [DailyStat] {
+            let mapped = values.compactMap { v -> DailyStat? in
+                guard let date = df.date(from: v.date) else { return nil }
+                return DailyStat(date: date, value: v.value)
+            }
+            let sorted = mapped.sorted { $0.date < $1.date }
+            return Array(sorted.suffix(30))
         }
-        
-        let downloadsHistory: [DailyStat] = downloads.historical.values.compactMap { v in
-            guard let date = dateFormatter.date(from: v.date) else { return nil }
-            return DailyStat(date: date, value: v.value)
-        }
-        
+
         return PhotoStatistics(
             width: width,
             height: height,
             totalViews: views.total,
             totalDownloads: downloads.total,
-            viewsHistory: viewsHistory,
-            downloadsHistory: downloadsHistory
+            viewsHistory: map(views.historical.values),
+            downloadsHistory: map(downloads.historical.values)
         )
     }
 }
