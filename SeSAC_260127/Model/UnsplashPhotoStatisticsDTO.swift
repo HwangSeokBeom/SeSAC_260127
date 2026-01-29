@@ -31,15 +31,12 @@ extension UnsplashPhotoStatisticsDTO {
 
     func toDomain(width: Int, height: Int) -> PhotoStatistics {
 
-        let df = FormatterManager.iso8601
-
         func map(_ values: [ValueDTO]) -> [DailyStat] {
-            let mapped = values.compactMap { v -> DailyStat? in
-                guard let date = df.date(from: v.date) else { return nil }
+            values.compactMap { v in
+                guard let date = FormatterManager.unsplashStatDate.date(from: v.date) else { return nil }
                 return DailyStat(date: date, value: v.value)
             }
-            let sorted = mapped.sorted { $0.date < $1.date }
-            return Array(sorted.suffix(30))
+            .sorted { $0.date < $1.date }
         }
 
         return PhotoStatistics(

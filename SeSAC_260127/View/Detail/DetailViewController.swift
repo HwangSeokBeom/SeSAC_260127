@@ -142,10 +142,11 @@ final class PhotoDetailViewController: UIViewController, ViewDesignProtocol {
         return button
     }()
     
-    private let chartView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .systemBlue.withAlphaComponent(0.15)
+    private let chartView: LineChartView = {
+        let view = LineChartView()
         view.layer.cornerRadius = 8
+        view.clipsToBounds = true
+        view.backgroundColor = .secondarySystemBackground
         return view
     }()
     
@@ -305,9 +306,19 @@ extension PhotoDetailViewController {
         }
         
         viewModel.onUpdate = { [weak self] in
-            self?.updateStatistics()
-            self?.updateChartButtons()
-            self?.updateChartView()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.updateStatistics()
+                self.updateChartButtons()
+                self.updateChartView()
+            }
+        }
+
+        viewModel.onLoadingChange = { [weak self] loading in
+            DispatchQueue.main.async {
+                loading ? self?.activityIndicator.startAnimating()
+                        : self?.activityIndicator.stopAnimating()
+            }
         }
         
         viewModel.onError = { message in
@@ -335,6 +346,7 @@ extension PhotoDetailViewController {
         downloadsValueLabel.text = viewModel.downloadsText
         
         updateChartButtons()
+        updateChartView()
     }
     
     private func updateStatistics() {
@@ -359,7 +371,7 @@ extension PhotoDetailViewController {
     }
     
     private func updateChartView() {
-        // TODO: 실제 차트로 바꿀 자리
+        chartView.render(viewModel.chartData)
     }
 }
 

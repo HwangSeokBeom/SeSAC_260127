@@ -95,6 +95,7 @@ final class PhotoDetailViewModel: PhotoDetailViewModelInput, PhotoDetailViewMode
             switch result {
             case .success(let stats):
                 self.statistics = stats
+                self.selectedChartType = .views
                 self.sizeText = "\(stats.width) x \(stats.height)"
                 self.viewsText = Self.formatNumber(stats.totalViews)
                 self.downloadsText = Self.formatNumber(stats.totalDownloads)

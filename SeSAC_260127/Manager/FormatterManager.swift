@@ -33,8 +33,11 @@ enum FormatterManager {
         return f
     }()
     
-    static let iso8601: ISO8601DateFormatter = {
-            let f = ISO8601DateFormatter()
-            return f
-        }()
+    static let unsplashStatDate: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(secondsFromGMT: 0)
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
 }
