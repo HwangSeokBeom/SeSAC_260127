@@ -6,81 +6,117 @@
 //
 
 import UIKit
+import DGCharts
 
 final class LineChartView: UIView {
 
-    private let axisLayer = CAShapeLayer()
-    private let lineLayer = CAShapeLayer()
+    private let chartView: DGCharts.LineChartView = {
+        let v = DGCharts.LineChartView()
+        v.backgroundColor = .secondarySystemBackground
+        v.layer.cornerRadius = 8
+        v.clipsToBounds = true
+        return v
+    }()
 
     private var currentData: [DailyStat] = []
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupLayers()
+        configureChartStyle()
+        addSubview(chartView)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupLayers() {
-        axisLayer.strokeColor = UIColor.separator.cgColor
-        axisLayer.lineWidth = 1
-        layer.addSublayer(axisLayer)
-
-        lineLayer.strokeColor = UIColor.label.cgColor
-        lineLayer.lineWidth = 2
-        lineLayer.fillColor = UIColor.clear.cgColor
-        lineLayer.lineJoin = .round
-        lineLayer.lineCap = .round
-        layer.addSublayer(lineLayer)
-    }
-
-    func render(_ data: [DailyStat]) {
-        currentData = data
-        setNeedsLayout()
-    }
-
     override func layoutSubviews() {
         super.layoutSubviews()
-        drawChart(with: currentData)
+        chartView.frame = bounds
     }
 
-    private func drawChart(with data: [DailyStat]) {
-        guard data.count >= 2 else {
-            axisLayer.path = nil
-            lineLayer.path = nil
+    func render(_ data: [DailyStat], animated: Bool = true) {
+        currentData = data
+        applyData(animated: animated)
+    }
+
+    private func configureChartStyle() {
+        chartView.legend.enabled = false
+        chartView.chartDescription.enabled = false
+
+        chartView.dragEnabled = true
+        chartView.setScaleEnabled(false)
+        chartView.pinchZoomEnabled = false
+        chartView.doubleTapToZoomEnabled = false
+
+        chartView.noDataText = "차트 데이터가 없어요"
+        chartView.noDataFont = .systemFont(ofSize: 13, weight: .medium)
+        chartView.noDataTextColor = .secondaryLabel
+
+        // X axis
+        let x = chartView.xAxis
+        x.labelPosition = .bottom
+        x.drawGridLinesEnabled = false
+        x.drawAxisLineEnabled = false
+        x.labelFont = .systemFont(ofSize: 11, weight: .medium)
+        x.labelTextColor = .secondaryLabel
+        x.granularity = 1
+        x.avoidFirstLastClippingEnabled = true
+
+        // Left axis
+        let left = chartView.leftAxis
+        left.drawAxisLineEnabled = false
+        left.labelFont = .systemFont(ofSize: 11, weight: .medium)
+        left.labelTextColor = .secondaryLabel
+        left.gridColor = UIColor.separator.withAlphaComponent(0.35)
+        left.gridLineWidth = 1
+        left.axisMinimum = 0
+
+        // Right axis off
+        chartView.rightAxis.enabled = false
+
+        chartView.highlightPerTapEnabled = false
+    }
+
+    private func applyData(animated: Bool) {
+        guard currentData.count >= 2 else {
+            chartView.data = nil
             return
         }
 
-        let values = data.map { CGFloat($0.value) }
-        guard let minV = values.min(), let maxV = values.max() else { return }
-
-        let valueRange = max(maxV - minV, 1)
-
-        let inset: CGFloat = 12
-        let w = max(bounds.width - inset * 2, 1)
-        let h = max(bounds.height - inset * 2, 1)
-
-        func x(_ i: Int) -> CGFloat {
-            inset + w * CGFloat(i) / CGFloat(values.count - 1)
+        // x는 인덱스, 라벨은 날짜로
+        let entries: [ChartDataEntry] = currentData.enumerated().map { idx, s in
+            ChartDataEntry(x: Double(idx), y: Double(s.value))
         }
 
-        func y(_ v: CGFloat) -> CGFloat {
-            let ratio = (v - minV) / valueRange
-            return inset + h * (1 - ratio)
-        }
+        let set = LineChartDataSet(entries: entries, label: "")
 
-        let axis = UIBezierPath()
-        axis.move(to: CGPoint(x: inset, y: inset + h))
-        axis.addLine(to: CGPoint(x: inset + w, y: inset + h))
-        axisLayer.path = axis.cgPath
+        set.mode = LineChartDataSet.Mode.cubicBezier
+        set.cubicIntensity = 0.2
 
-        let path = UIBezierPath()
-        path.move(to: CGPoint(x: x(0), y: y(values[0])))
-        for i in 1..<values.count {
-            path.addLine(to: CGPoint(x: x(i), y: y(values[i])))
+        set.lineWidth = 2.5
+        set.setColor(UIColor.systemGreen)
+        set.drawValuesEnabled = false
+        set.drawCirclesEnabled = false
+        set.drawCircleHoleEnabled = false
+        set.highlightEnabled = false
+
+        set.drawFilledEnabled = true
+        set.fillColor = UIColor.systemGreen
+        set.fillAlpha = 0.35
+
+        let data = LineChartData(dataSet: set)
+        chartView.data = data
+
+        let labels = currentData.map { FormatterManager.statChartDate.string(from: $0.date) }
+        chartView.xAxis.valueFormatter = IndexAxisValueFormatter(values: labels)
+
+        chartView.xAxis.labelCount = min(6, labels.count)
+
+        chartView.notifyDataSetChanged()
+
+        if animated {
+            chartView.animate(xAxisDuration: 0.25, easingOption: .easeOutSine)
         }
-        lineLayer.path = path.cgPath
     }
 }
