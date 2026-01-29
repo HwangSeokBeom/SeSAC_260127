@@ -155,6 +155,7 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     func configureView() {
         navigationItem.title = "SEARCH PHOTO"
         searchBar.delegate = self
+        configureKeyboardDismiss()
     }
     
     func configureHierarchy() {
@@ -200,6 +201,7 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     
     @objc private func sortButtonTapped() {
         viewModel.toggleSort()
+        dismissKeyboard()
     }
     
     private func updateCollectionViewItemSize() {
@@ -255,6 +257,7 @@ extension SearchPhotoViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
         
+        dismissKeyboard()
         if collectionView === filterCollectionView {
             viewModel.selectColor(at: indexPath.item)
             return
@@ -303,6 +306,9 @@ extension SearchPhotoViewController: UISearchBarDelegate {
 extension SearchPhotoViewController {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        
+        if searchBar.isFirstResponder { dismissKeyboard() }
+        
         guard scrollView === collectionView else { return }
         
         let offsetY = scrollView.contentOffset.y
@@ -312,6 +318,22 @@ extension SearchPhotoViewController {
         if offsetY > contentHeight - height * 1.5 {
             viewModel.loadNextPage()
         }
+    }
+}
+
+private extension SearchPhotoViewController {
+    
+    func configureKeyboardDismiss() {
+        collectionView.keyboardDismissMode = .onDrag
+        filterCollectionView.keyboardDismissMode = .onDrag
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
     }
 }
 
