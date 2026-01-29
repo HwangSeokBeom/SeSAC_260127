@@ -26,7 +26,7 @@ protocol SearchPhotoViewModelOutput: AnyObject {
     var onError: ((String) -> Void)? { get set }
     var onLoadingChange: ((Bool) -> Void)? { get set }
     
-    func photo(at index: Int) -> Photo
+    func photo(at index: Int) -> Photo?
 }
 
 final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewModelOutput {
@@ -65,20 +65,10 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         self.filters = PhotoColorFilter.allCases.map { FilterCellModel(filter: $0) }
     }
     
-    func photo(at index: Int) -> Photo {
+    func photo(at index: Int) -> Photo? {
         guard photos.indices.contains(index) else {
             assertionFailure("photo(at:) index out of range. index: \(index), photos.count: \(photos.count)")
-            return photos.last ?? Photo(
-                id: "",
-                imageURL: nil,
-                likeCount: 0,
-                isFavorite: false,
-                width: 0,
-                height: 0,
-                userName: "",
-                userProfileImageURL: nil,
-                createdAt: nil
-            )
+            return nil
         }
         return photos[index]
     }
