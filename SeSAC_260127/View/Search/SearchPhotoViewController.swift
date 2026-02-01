@@ -151,7 +151,18 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     }
     
     private func updateEmptyState() {
-        emptyLabel.isHidden = !viewModel.isEmpty
+        guard viewModel.isEmpty else {
+            emptyLabel.isHidden = true
+            return
+        }
+
+        emptyLabel.isHidden = false
+
+        if viewModel.currentQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            emptyLabel.text = "사진을 검색해보세요."
+        } else {
+            emptyLabel.text = "검색 결과가 없습니다."
+        }
     }
     
     private func updateSortButtonTitle() {

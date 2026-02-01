@@ -95,8 +95,10 @@ final class TopicViewController: UIViewController {
             self?.collectionView.reloadData()
         }
         
-        viewModel.onError = { [weak self] error in
-            print("Error:", error)
+        viewModel.onError = { [weak self] message in
+            DispatchQueue.main.async {
+                self?.showAlert(title: "오류", message: message)
+            }
         }
     }
  
