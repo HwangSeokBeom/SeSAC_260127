@@ -55,7 +55,6 @@ extension UnsplashPhotoDTO {
             id: id,
             imageURL: imageURL,
             likeCount: likes,
-            isFavorite: false,
             width: width,
             height: height,
             userName: user.name,

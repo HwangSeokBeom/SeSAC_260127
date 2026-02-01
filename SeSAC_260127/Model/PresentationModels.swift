@@ -26,17 +26,19 @@ extension TopicCellModel {
 // MARK: - Photo Cell
 
 struct PhotoCellModel {
+    let id: String
     let imageURL: URL?
     let likeCountText: String
     let isFavorite: Bool
 }
 
 extension PhotoCellModel {
-    init(domain: Photo) {
+    init(domain: Photo, isFavorite: Bool) {
+        self.id = domain.id
         self.imageURL = domain.imageURL
         self.likeCountText = FormatterManager.decimalNumber.string(from: domain.likeCount as NSNumber)
             ?? "\(domain.likeCount)"
-        self.isFavorite = domain.isFavorite
+        self.isFavorite = isFavorite
     }
 }
 
@@ -57,12 +59,14 @@ extension FilterCellModel {
 // MARK: - Detail Models
 
 struct PhotoDetailHeaderModel {
+    let photoID: String
     let mainImageURL: URL?
     let userName: String
     let userProfileImageURL: URL?
     let createdAtText: String
     let sizeText: String
     let likeCountText: String
+    let isFavorite: Bool
 }
 
 struct PhotoDetailStatisticsModel {
@@ -81,20 +85,24 @@ struct DailyStatCellModel {
 
 extension PhotoDetailHeaderModel {
 
-    init(domain: Photo) {
+    init(domain: Photo, isFavorite: Bool) {
+        self.photoID = domain.id
         self.mainImageURL = domain.imageURL
         self.userName = domain.userName
         self.userProfileImageURL = domain.userProfileImageURL
-        
+
         if let createdAt = domain.createdAt {
             self.createdAtText = FormatterManager.photoCreatedDate.string(from: createdAt)
         } else {
             self.createdAtText = "날짜 정보 없음"
         }
-        
+
         self.sizeText = "\(domain.width) x \(domain.height)"
-        self.likeCountText = FormatterManager.decimalNumber.string(from: domain.likeCount as NSNumber)
-            ?? "\(domain.likeCount)"
+        self.likeCountText = FormatterManager.decimalNumber.string(
+            from: domain.likeCount as NSNumber
+        ) ?? "\(domain.likeCount)"
+
+        self.isFavorite = isFavorite
     }
 }
 

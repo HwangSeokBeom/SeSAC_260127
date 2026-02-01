@@ -238,6 +238,12 @@ extension SearchPhotoViewController: UICollectionViewDataSource {
             }
             let item = viewModel.items[indexPath.item]
             cell.configure(with: item)
+            
+            cell.onTapFavorite = { [weak self] in
+                guard let self else { return }
+                self.viewModel.toggleFavorite(at: indexPath.item)
+            }
+            
             return cell
         } else {
             guard let cell = collectionView.dequeueReusableCell(

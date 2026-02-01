@@ -13,6 +13,8 @@ final class PhotoCell: UICollectionViewCell {
     
     static let identifier = "PhotoCell"
     
+    var onTapFavorite: (() -> Void)?
+    
     private let photoImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.backgroundColor = .systemGray5
@@ -60,6 +62,7 @@ final class PhotoCell: UICollectionViewCell {
         super.init(frame: frame)
         configureHierarchy()
         configureLayout()
+        configureActions()
     }
     
     required init?(coder: NSCoder) {
@@ -72,6 +75,7 @@ final class PhotoCell: UICollectionViewCell {
         photoImageView.image = nil
         likeCountLabel.text = nil
         currentModel = nil
+        onTapFavorite = nil
         
         let heartImage = UIImage(systemName: "heart")
         favoriteButton.setImage(heartImage, for: .normal)
@@ -113,6 +117,10 @@ final class PhotoCell: UICollectionViewCell {
         }
     }
     
+    private func configureActions() {
+          favoriteButton.addTarget(self, action: #selector(didTapFavorite), for: .touchUpInside)
+      }
+    
     func configure(with viewModel: PhotoCellModel) {
         currentModel = viewModel
         
@@ -127,5 +135,17 @@ final class PhotoCell: UICollectionViewCell {
         let heartName = viewModel.isFavorite ? "heart.fill" : "heart"
         let image = UIImage(systemName: heartName)
         favoriteButton.setImage(image, for: .normal)
+        updateFavoriteUI(isFavorite: viewModel.isFavorite)
+    }
+    
+    
+    private func updateFavoriteUI(isFavorite: Bool) {
+        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        let name = isFavorite ? "heart.fill" : "heart"
+        favoriteButton.setImage(UIImage(systemName: name, withConfiguration: config), for: .normal)
+    }
+
+    @objc private func didTapFavorite() {
+        onTapFavorite?()
     }
 }

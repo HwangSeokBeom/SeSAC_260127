@@ -23,8 +23,7 @@ struct Photo {
     let id: String
     let imageURL: URL?
     let likeCount: Int
-    let isFavorite: Bool
-    
+
     let width: Int
     let height: Int
     let userName: String

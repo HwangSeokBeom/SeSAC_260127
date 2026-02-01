@@ -291,18 +291,19 @@ extension PhotoDetailViewController {
         }
     }
 }
-    
+
 extension PhotoDetailViewController {
     
     func configureActions() {
         viewsButton.addTarget(self, action: #selector(didTapViews), for: .touchUpInside)
         downloadsButton.addTarget(self, action: #selector(didTapDownloads), for: .touchUpInside)
+        likeButton.addTarget(self, action: #selector(didTapLike), for: .touchUpInside)
     }
     
     func bindViewModel() {
         viewModel.onLoadingChange = { [weak self] loading in
             loading ? self?.activityIndicator.startAnimating()
-                    : self?.activityIndicator.stopAnimating()
+            : self?.activityIndicator.stopAnimating()
         }
         
         viewModel.onUpdate = { [weak self] in
@@ -313,11 +314,11 @@ extension PhotoDetailViewController {
                 self.updateChartView()
             }
         }
-
+        
         viewModel.onLoadingChange = { [weak self] loading in
             DispatchQueue.main.async {
                 loading ? self?.activityIndicator.startAnimating()
-                        : self?.activityIndicator.stopAnimating()
+                : self?.activityIndicator.stopAnimating()
             }
         }
         
@@ -345,6 +346,9 @@ extension PhotoDetailViewController {
         viewsValueLabel.text = viewModel.viewsText
         downloadsValueLabel.text = viewModel.downloadsText
         
+        let liked = UserDefaultsManager.shared.isLiked(photoID: viewModel.photo.id)
+        updateLikeButton(isLiked: liked)
+        
         updateChartButtons()
         updateChartView()
     }
@@ -353,6 +357,12 @@ extension PhotoDetailViewController {
         sizeValueLabel.text = viewModel.sizeText
         viewsValueLabel.text = viewModel.viewsText
         downloadsValueLabel.text = viewModel.downloadsText
+    }
+    
+    private func updateLikeButton(isLiked: Bool) {
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .regular)
+        let imageName = isLiked ? "heart.fill" : "heart"
+        likeButton.setImage(UIImage(systemName: imageName, withConfiguration: config), for: .normal)
     }
     
     private func updateChartButtons() {
@@ -379,6 +389,11 @@ extension PhotoDetailViewController {
     
     @objc private func didTapBack() {
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc private func didTapLike() {
+        let newState = UserDefaultsManager.shared.toggle(photoID: viewModel.photo.id)
+        updateLikeButton(isLiked: newState)
     }
     
     @objc private func didTapViews() {

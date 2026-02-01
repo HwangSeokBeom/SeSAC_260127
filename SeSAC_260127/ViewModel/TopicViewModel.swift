@@ -6,8 +6,6 @@
 
 import Foundation
 
-// MARK: - Protocols
-
 protocol TopicViewModelInput: AnyObject {
     func viewDidLoad()
     func loadTopics()
@@ -18,27 +16,19 @@ protocol TopicViewModelOutput: AnyObject {
     
     func titleForSection(_ section: Int) -> String
     func numberOfItems(in section: Int) -> Int
-    func cellViewModel(section: Int, item: Int) -> TopicCellModel 
+    func cellViewModel(section: Int, item: Int) -> TopicCellModel
     var onUpdate: (() -> Void)? { get set }
     var onError: ((String) -> Void)? { get set }
 }
 
-// MARK: - ViewModel
-
 final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
 
-    // MARK: - State
-    
     private(set) var sections: [TopicSection] = [] {
         didSet { onUpdate?() }
     }
 
-    // MARK: - Output Callbacks
-    
     var onUpdate: (() -> Void)?
     var onError: ((String) -> Void)?
-    
-    // MARK: - Dependencies
     
     private let repository: TopicRepository
     
@@ -46,8 +36,6 @@ final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
         self.repository = repository
     }
 
-    // MARK: - Input
-    
     func viewDidLoad() {
         loadTopics()
     }
@@ -66,8 +54,6 @@ final class TopicViewModel: TopicViewModelInput, TopicViewModelOutput {
         }
     }
 
-    // MARK: - Output Helpers
-    
     var numberOfSections: Int {
         sections.count
     }
