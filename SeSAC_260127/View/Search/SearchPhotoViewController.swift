@@ -68,7 +68,7 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
         var config = UIButton.Configuration.plain()
         config.baseForegroundColor = .black
         config.baseBackgroundColor = .white
-  
+        
         var title = AttributedString(" 관련순")
         title.font = .systemFont(ofSize: 14, weight: .medium)
         config.attributedTitle = title
@@ -119,9 +119,20 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     private func bindViewModel() {
         viewModel.onUpdate = { [weak self] in
             guard let self else { return }
-            self.collectionView.reloadData()
-            self.updateEmptyState()
-            self.updateSortButtonTitle()
+            DispatchQueue.main.async {
+                self.collectionView.reloadData()
+                self.updateEmptyState()
+                self.updateSortButtonTitle()
+            }
+        }
+        
+        viewModel.onItemChanged = { [weak self] index in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                let ip = IndexPath(item: index, section: 0)
+                // 해당 셀만 갱신
+                self.collectionView.reloadItems(at: [ip])
+            }
         }
         
         viewModel.onError = { [weak self] message in
@@ -239,9 +250,8 @@ extension SearchPhotoViewController: UICollectionViewDataSource {
             let item = viewModel.items[indexPath.item]
             cell.configure(with: item)
             
-            cell.onTapFavorite = { [weak self] in
-                guard let self else { return }
-                self.viewModel.toggleFavorite(at: indexPath.item)
+            cell.onTapFavorite = { [weak self] photoID in
+                self?.viewModel.toggleFavorite(photoID: photoID)
             }
             
             return cell

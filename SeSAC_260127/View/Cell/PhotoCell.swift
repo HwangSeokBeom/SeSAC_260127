@@ -13,7 +13,7 @@ final class PhotoCell: UICollectionViewCell {
     
     static let identifier = "PhotoCell"
     
-    var onTapFavorite: (() -> Void)?
+    var onTapFavorite: ((String) -> Void)?
     
     private let photoImageView: UIImageView = {
         let imageView = UIImageView()
@@ -146,6 +146,7 @@ final class PhotoCell: UICollectionViewCell {
     }
 
     @objc private func didTapFavorite() {
-        onTapFavorite?()
+        guard let id = currentModel?.id else { return }
+        onTapFavorite?(id)
     }
 }
