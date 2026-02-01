@@ -12,6 +12,8 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
     
     private let viewModel: (SearchPhotoViewModelInput & SearchPhotoViewModelOutput)
     
+    private var isPresentingErrorAlert = false
+    
     init(viewModel: some SearchPhotoViewModelInput & SearchPhotoViewModelOutput) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -136,8 +138,15 @@ final class SearchPhotoViewController: UIViewController, ViewDesignProtocol {
         }
         
         viewModel.onError = { [weak self] message in
-            // TODO:
-            print(message)
+            guard let self else { return }
+            DispatchQueue.main.async {
+                guard !self.isPresentingErrorAlert else { return }
+                self.isPresentingErrorAlert = true
+
+                self.showAlert(title: "검색 오류", message: message) {
+                    self.isPresentingErrorAlert = false
+                }
+            }
         }
     }
     

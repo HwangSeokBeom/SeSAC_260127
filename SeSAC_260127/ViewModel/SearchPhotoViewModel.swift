@@ -145,7 +145,15 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
                     self.photos = []
                     self.items = []
                 }
-                self.onError?("검색 실패: \(error.localizedDescription)")
+
+                let message: String
+                if let networkError = error as? NetworkError {
+                    message = networkError.userMessage
+                } else {
+                    message = error.localizedDescription
+                }
+
+                self.onError?(message)
             }
         }
     }

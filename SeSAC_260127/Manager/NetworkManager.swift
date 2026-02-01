@@ -22,18 +22,18 @@ protocol Networking {
 }
 
 final class NetworkManager: Networking {
-    
+
     static let shared = NetworkManager()
-    
+
     private let session: Session
-    
+
     private init() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 15
         self.session = Session(configuration: config)
     }
-    
+
     @discardableResult
     func request<T: Decodable>(
         _ type: T.Type,
@@ -44,12 +44,12 @@ final class NetworkManager: Networking {
         headers: HTTPHeaders? = nil,
         completion: @escaping (Result<T, NetworkError>) -> Void
     ) -> DataRequest {
-        
-        guard let _ = URL(string: url) else {
+
+        guard URL(string: url) != nil else {
             completion(.failure(.invalidURL))
             return session.request("about:blank")
         }
-        
+
         let request = session.request(
             url,
             method: method,
@@ -57,16 +57,16 @@ final class NetworkManager: Networking {
             encoding: encoding,
             headers: headers
         )
-        .validate()
-        
+        .validate(statusCode: 200..<300) 
+
         request.responseDecodable(of: T.self) { response in
             switch response.result {
             case .success(let value):
                 completion(.success(value))
-                
+
             case .failure(let afError):
-                if let code = response.response?.statusCode,
-                   !(200..<300).contains(code) {
+
+                if let code = response.response?.statusCode {
                     completion(.failure(.statusCode(code)))
                     return
                 }
@@ -77,10 +77,15 @@ final class NetworkManager: Networking {
                     return
                 }
 
+                if let urlError = afError.underlyingError as? URLError {
+                    completion(.failure(.underlying(urlError)))
+                    return
+                }
+
                 completion(.failure(.underlying(afError)))
             }
         }
-        
+
         return request
     }
 }
