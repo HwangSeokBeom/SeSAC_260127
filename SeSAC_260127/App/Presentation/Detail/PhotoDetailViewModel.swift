@@ -27,19 +27,16 @@ protocol PhotoDetailViewModelOutput: AnyObject {
     var selectedChartType: PhotoDetailViewModel.ChartType { get }
     var chartData: [DailyStat] { get }
 
+    var isLiked: Bool { get }
+
     var onUpdate: (() -> Void)? { get set }
     var onError: ((String) -> Void)? { get set }
     var onLoadingChange: ((Bool) -> Void)? { get set }
-
-    var isLiked: Bool { get }
 }
 
 final class PhotoDetailViewModel: PhotoDetailViewModelInput, PhotoDetailViewModelOutput {
 
-    enum ChartType {
-        case views
-        case downloads
-    }
+    enum ChartType { case views, downloads }
 
     let photo: Photo
 
@@ -61,43 +58,24 @@ final class PhotoDetailViewModel: PhotoDetailViewModelInput, PhotoDetailViewMode
     var onLoadingChange: ((Bool) -> Void)?
 
     private let repository: PhotoStatisticsRepository
-    private let likeRepository: LikeRepository
-
+    private let likeUseCase: LikeToggleUseCase
     private var statistics: PhotoStatistics?
-    private var likeObserverToken: UUID?
 
     init(
         photo: Photo,
         repository: PhotoStatisticsRepository,
-        likeRepository: LikeRepository
+        likeUseCase: LikeToggleUseCase
     ) {
         self.photo = photo
         self.repository = repository
-        self.likeRepository = likeRepository
+        self.likeUseCase = likeUseCase
 
         sizeText = "\(photo.width) x \(photo.height)"
         authorNameText = photo.userName
         authorProfileURL = photo.userProfileImageURL
         createdAtText = Self.formatDate(photo.createdAt)
 
-        isLiked = likeRepository.isLiked(photoID: photo.id)
-
-        likeObserverToken = likeRepository.addObserver { [weak self] changedID, liked in
-            guard let self, changedID == self.photo.id else { return }
-            self.isLiked = liked
-            self.onUpdate?()
-        }
-    }
-
-    deinit {
-        if let token = likeObserverToken {
-            likeRepository.removeObserver(token)
-        }
-    }
-
-    private static func formatDate(_ date: Date?) -> String {
-        guard let date else { return "-" }
-        return DisplayFormatter.photoCreatedDate(date)
+        isLiked = likeUseCase.isLiked(photoID: photo.id)
     }
 
     func load() {
@@ -127,25 +105,25 @@ final class PhotoDetailViewModel: PhotoDetailViewModelInput, PhotoDetailViewMode
         }
     }
 
+    func toggleLike() {
+        isLiked = likeUseCase.toggle(photoID: photo.id)
+        onUpdate?()
+    }
+
     func selectChartType(_ type: ChartType) {
         selectedChartType = type
         updateChartData()
         onUpdate?()
     }
 
-    func toggleLike() {
-        isLiked = likeRepository.toggle(photoID: photo.id)
-        onUpdate?()
-    }
-
     private func updateChartData() {
         guard let stats = statistics else { return }
-        switch selectedChartType {
-        case .views:
-            chartData = stats.viewsHistory
-        case .downloads:
-            chartData = stats.downloadsHistory
-        }
+        chartData = (selectedChartType == .views) ? stats.viewsHistory : stats.downloadsHistory
+    }
+
+    private static func formatDate(_ date: Date?) -> String {
+        guard let date else { return "-" }
+        return DisplayFormatter.photoCreatedDate(date)
     }
 
     private static func formatNumber(_ value: Int) -> String {

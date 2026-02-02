@@ -12,11 +12,22 @@ final class DIContainer {
     static let shared = DIContainer()
     private init() {}
 
-
     private lazy var network: Networking = AlamofireNetworkClient()
     private let unsplashKey: String = APIKey.unsplash
 
-    private lazy var likeRepository: LikeRepository = UserDefaultsLikeRepository()
+    private lazy var likeStorage: LikeStorage = UserDefaultsLikeStorage(
+        defaults: .standard,
+        likedKey: "liked_photo_ids"
+    )
+
+    private lazy var likeRepository: LikeRepository = DefaultLikeRepository(
+        storage: likeStorage,
+        callbackQueue: .main
+    )
+
+    private lazy var likeUseCase: LikeToggleUseCase = DefaultLikeToggleUseCase(
+        repository: likeRepository
+    )
 
     private func makeTopicRemoteDataSource() -> TopicRemoteDataSource {
         UnsplashTopicRemoteDataSource(apiKey: unsplashKey, network: network)
@@ -50,7 +61,7 @@ final class DIContainer {
     func makeSearchPhotoViewController() -> SearchPhotoViewController {
         let viewModel = SearchPhotoViewModel(
             repository: makePhotoSearchRepository(),
-            likeRepository: likeRepository
+            likeUseCase: likeUseCase
         )
         return SearchPhotoViewController(viewModel: viewModel)
     }
@@ -59,7 +70,7 @@ final class DIContainer {
         let viewModel = PhotoDetailViewModel(
             photo: photo,
             repository: makePhotoStatisticsRepository(),
-            likeRepository: likeRepository
+            likeUseCase: likeUseCase
         )
         return PhotoDetailViewController(viewModel: viewModel)
     }

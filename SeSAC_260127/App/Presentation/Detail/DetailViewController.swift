@@ -390,6 +390,7 @@ extension PhotoDetailViewController {
 
     @objc private func didTapLike() {
         viewModel.toggleLike()
+        updateLikeButton(isLiked: viewModel.isLiked)
     }
 
     @objc private func didTapViews() {

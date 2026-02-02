@@ -52,7 +52,7 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     var onLoadingChange: ((Bool) -> Void)?
 
     private let repository: PhotoSearchRepository
-    private let likeRepository: LikeRepository
+    private let likeUseCase: LikeToggleUseCase
     private var likeObserverToken: UUID?
 
     private var page: Int = 1
@@ -60,19 +60,19 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     private var isLoading: Bool = false
     private var hasMore: Bool = true
 
-    init(repository: PhotoSearchRepository, likeRepository: LikeRepository) {
+    init(repository: PhotoSearchRepository, likeUseCase: LikeToggleUseCase) {
         self.repository = repository
-        self.likeRepository = likeRepository
+        self.likeUseCase = likeUseCase
         self.filters = PhotoColor.allCases.map { FilterCellModel(filter: $0) }
 
-        self.likeObserverToken = likeRepository.addObserver { [weak self] photoID, isLiked in
+        self.likeObserverToken = likeUseCase.observe { [weak self] photoID, isLiked in
             self?.applyLikeChange(photoID: photoID, isFavorite: isLiked)
         }
     }
 
     deinit {
         if let token = likeObserverToken {
-            likeRepository.removeObserver(token)
+            likeUseCase.removeObserver(token)
         }
     }
 
@@ -82,8 +82,7 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     }
 
     func toggleFavorite(photoID: String) {
-        _ = likeRepository.toggle(photoID: photoID)
-        // repo notify -> applyLikeChange -> onItemChanged로 UI 갱신
+        _ = likeUseCase.toggle(photoID: photoID)
     }
 
     func search(query: String) {
@@ -151,7 +150,6 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
                 } else {
                     message = error.localizedDescription
                 }
-
                 self.onError?(message)
             }
         }
@@ -161,13 +159,12 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
         if reset {
             self.photos = newPhotos
             self.items = newPhotos.map {
-                PhotoCellModel(domain: $0, isFavorite: likeRepository.isLiked(photoID: $0.id))
+                PhotoCellModel(domain: $0, isFavorite: likeUseCase.isLiked(photoID: $0.id))
             }
         } else {
             self.photos.append(contentsOf: newPhotos)
-
             let models = newPhotos.map {
-                PhotoCellModel(domain: $0, isFavorite: likeRepository.isLiked(photoID: $0.id))
+                PhotoCellModel(domain: $0, isFavorite: likeUseCase.isLiked(photoID: $0.id))
             }
             self.items.append(contentsOf: models)
         }

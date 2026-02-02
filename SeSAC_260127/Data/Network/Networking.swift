@@ -11,11 +11,8 @@ import Alamofire
 protocol Networking {
     func requestDecodable<T: Decodable>(
         _ type: T.Type,
-        url: String,
-        method: HTTPMethod,
-        parameters: Parameters?,
-        encoding: ParameterEncoding,
+        endpoint: Endpoint,
         headers: HTTPHeaders?,
-        completion: @escaping (Result<T, NetworkError>) -> Void
+        completion: @escaping (Result<T, Error>) -> Void
     )
 }

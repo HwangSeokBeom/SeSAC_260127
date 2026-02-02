@@ -12,34 +12,29 @@ final class AlamofireNetworkClient: Networking {
 
     private let session: Session
 
-    init(session: Session = {
+    init() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 15
-        return Session(configuration: config)
-    }()) {
-        self.session = session
+        self.session = Session(configuration: config)
     }
 
     func requestDecodable<T: Decodable>(
         _ type: T.Type,
-        url: String,
-        method: HTTPMethod = .get,
-        parameters: Parameters? = nil,
-        encoding: ParameterEncoding = URLEncoding.default,
-        headers: HTTPHeaders? = nil,
-        completion: @escaping (Result<T, NetworkError>) -> Void
+        endpoint: Endpoint,
+        headers: HTTPHeaders?,
+        completion: @escaping (Result<T, Error>) -> Void
     ) {
-        guard URL(string: url) != nil else {
-            completion(.failure(.invalidURL))
+        guard URL(string: endpoint.urlString) != nil else {
+            completion(.failure(NetworkError.invalidURL))
             return
         }
 
         session.request(
-            url,
-            method: method,
-            parameters: parameters,
-            encoding: encoding,
+            endpoint.urlString,
+            method: endpoint.method,
+            parameters: endpoint.parameters,
+            encoding: endpoint.encoding,
             headers: headers
         )
         .validate(statusCode: 200..<300)
@@ -50,22 +45,22 @@ final class AlamofireNetworkClient: Networking {
 
             case .failure(let afError):
                 if let code = response.response?.statusCode {
-                    completion(.failure(.statusCode(code)))
+                    completion(.failure(NetworkError.statusCode(code)))
                     return
                 }
 
                 if case .responseSerializationFailed(let reason) = afError,
                    case .decodingFailed(let underlying) = reason {
-                    completion(.failure(.decoding(underlying)))
+                    completion(.failure(NetworkError.decoding(underlying)))
                     return
                 }
 
                 if let urlError = afError.underlyingError as? URLError {
-                    completion(.failure(.underlying(urlError)))
+                    completion(.failure(NetworkError.underlying(urlError)))
                     return
                 }
 
-                completion(.failure(.underlying(afError)))
+                completion(.failure(NetworkError.underlying(afError)))
             }
         }
     }

@@ -5,11 +5,6 @@
 //  Created by Hwangseokbeom on 2/2/26.
 //
 
-//
-//  UnsplashTopicRemoteDataSource.swift
-//  SeSAC_260127
-//
-
 import Foundation
 import Alamofire
 
@@ -31,18 +26,12 @@ final class UnsplashTopicRemoteDataSource: TopicRemoteDataSource {
         topicID: String,
         completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void
     ) {
-        let url = "https://api.unsplash.com/topics/\(topicID)/photos"
-        let params: Parameters = ["page": 1, "per_page": 20]
+        let endpoint = UnsplashEndpoint.topicPhotos(id: topicID, page: 1, perPage: 20)
 
         network.requestDecodable(
             [UnsplashPhotoDTO].self,
-            url: url,
-            method: .get,
-            parameters: params,
-            encoding: URLEncoding.default,
+            endpoint: endpoint,
             headers: authHeaders
-        ) { result in
-            completion(result.mapError { $0 as Error })
-        }
+        ) { completion($0) }
     }
 }
