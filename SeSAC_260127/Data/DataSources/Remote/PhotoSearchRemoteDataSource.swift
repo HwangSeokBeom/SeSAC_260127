@@ -12,12 +12,12 @@ protocol PhotoSearchRemoteDataSource {
         sort: PhotoSortOption,
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void
+        completion: @escaping (Result<[UnsplashPhotoDTO], NetworkError>) -> Void
     )
 
     func fetchList(
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void
+        completion: @escaping (Result<[UnsplashPhotoDTO], NetworkError>) -> Void
     )
 }

@@ -13,6 +13,6 @@ protocol Networking {
         _ type: T.Type,
         endpoint: Endpoint,
         headers: HTTPHeaders?,
-        completion: @escaping (Result<T, Error>) -> Void
+        completion: @escaping (Result<T, NetworkError>) -> Void
     )
 }

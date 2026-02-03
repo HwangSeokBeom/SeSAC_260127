@@ -6,5 +6,5 @@
 //
 
 protocol TopicRemoteDataSource {
-    func fetchTopicPhotos(topicID: String, completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void)
+    func fetchTopicPhotos(topicID: String, completion: @escaping (Result<[UnsplashPhotoDTO], NetworkError>) -> Void)
 }

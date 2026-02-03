@@ -24,7 +24,7 @@ final class UnsplashPhotoStatisticsRemoteDataSource: PhotoStatisticsRemoteDataSo
 
     func fetchStatistics(
         photoID: String,
-        completion: @escaping (Result<UnsplashPhotoStatisticsDTO, Error>) -> Void
+        completion: @escaping (Result<UnsplashPhotoStatisticsDTO, NetworkError>) -> Void
     ) {
         let endpoint = UnsplashEndpoint.photoStatistics(id: photoID)
 

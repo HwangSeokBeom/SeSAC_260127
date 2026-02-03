@@ -10,6 +10,6 @@ protocol PhotoStatisticsRepository {
         photoID: String,
         width: Int,
         height: Int,
-        completion: @escaping (Result<PhotoStatistics, Error>) -> Void
+        completion: @escaping (Result<PhotoStatistics, NetworkError>) -> Void
     )
 }

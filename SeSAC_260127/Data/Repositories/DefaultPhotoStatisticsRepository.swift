@@ -17,7 +17,7 @@ final class DefaultPhotoStatisticsRepository: PhotoStatisticsRepository {
         photoID: String,
         width: Int,
         height: Int,
-        completion: @escaping (Result<PhotoStatistics, Error>) -> Void
+        completion: @escaping (Result<PhotoStatistics, NetworkError>) -> Void
     ) {
         remote.fetchStatistics(photoID: photoID) { result in
             switch result {

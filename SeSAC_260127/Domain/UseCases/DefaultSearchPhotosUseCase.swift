@@ -21,7 +21,7 @@ final class DefaultSearchPhotosUseCase: SearchPhotosUseCase {
         sort: PhotoSortOption,
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[Photo], Error>) -> Void
+        completion: @escaping (Result<[Photo], NetworkError>) -> Void
     ) {
         repository.searchPhotos(
             query: rawQuery,

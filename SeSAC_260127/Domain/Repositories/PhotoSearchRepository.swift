@@ -12,6 +12,6 @@ protocol PhotoSearchRepository {
         sort: PhotoSortOption,
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[Photo], Error>) -> Void
+        completion: @escaping (Result<[Photo], NetworkError>) -> Void
     )
 }

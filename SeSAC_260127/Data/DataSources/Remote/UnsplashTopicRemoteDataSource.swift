@@ -24,7 +24,7 @@ final class UnsplashTopicRemoteDataSource: TopicRemoteDataSource {
 
     func fetchTopicPhotos(
         topicID: String,
-        completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void
+        completion: @escaping (Result<[UnsplashPhotoDTO], NetworkError>) -> Void
     ) {
         let endpoint = UnsplashEndpoint.topicPhotos(id: topicID, page: 1, perPage: 20)
 

@@ -6,5 +6,5 @@
 //
 
 protocol TopicRepository {
-    func fetchTopics(completion: @escaping (Result<[TopicSection], Error>) -> Void)
+    func fetchTopics(completion: @escaping (Result<[TopicSection], NetworkError>) -> Void)
 }

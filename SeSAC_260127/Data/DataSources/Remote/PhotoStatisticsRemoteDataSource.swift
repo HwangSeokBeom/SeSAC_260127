@@ -8,6 +8,6 @@
 protocol PhotoStatisticsRemoteDataSource {
     func fetchStatistics(
         photoID: String,
-        completion: @escaping (Result<UnsplashPhotoStatisticsDTO, Error>) -> Void
+        completion: @escaping (Result<UnsplashPhotoStatisticsDTO, NetworkError>) -> Void
     )
 }

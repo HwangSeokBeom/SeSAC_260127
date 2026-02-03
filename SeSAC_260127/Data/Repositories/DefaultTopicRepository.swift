@@ -28,12 +28,12 @@ final class DefaultTopicRepository: TopicRepository {
         self.remote = remote
     }
 
-    func fetchTopics(completion: @escaping (Result<[TopicSection], Error>) -> Void) {
+    func fetchTopics(completion: @escaping (Result<[TopicSection], NetworkError>) -> Void) {
         let group = DispatchGroup()
         let lock = NSLock()
 
         var sectionsByTitle: [String: TopicSection] = [:]
-        var firstError: Error?
+        var firstError: NetworkError?
 
         configs.forEach { config in
             group.enter()

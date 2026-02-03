@@ -8,7 +8,7 @@
 import Foundation
 import Alamofire
 
-enum NetworkError: Error {
+enum NetworkError: Error, AppError {
     case invalidURL
     case statusCode(Int)
     case decoding(Error)
@@ -60,6 +60,19 @@ enum NetworkError: Error {
             }
 
             return (error as NSError).localizedDescription
+        }
+    }
+
+    var debugMessage: String {
+        switch self {
+        case .invalidURL:
+            return "invalidURL"
+        case .statusCode(let code):
+            return "HTTP statusCode=\(code)"
+        case .decoding(let error):
+            return "decoding error: \(error)"
+        case .underlying(let error):
+            return "underlying error: \(error)"
         }
     }
 }

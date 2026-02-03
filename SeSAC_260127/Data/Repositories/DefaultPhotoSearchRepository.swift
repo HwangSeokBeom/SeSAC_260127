@@ -21,7 +21,7 @@ final class DefaultPhotoSearchRepository: PhotoSearchRepository {
         sort: PhotoSortOption,
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[Photo], Error>) -> Void
+        completion: @escaping (Result<[Photo], NetworkError>) -> Void
     ) {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -32,12 +32,10 @@ final class DefaultPhotoSearchRepository: PhotoSearchRepository {
         }
     }
 
-    // MARK: - Private
-
     private func fetchList(
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[Photo], Error>) -> Void
+        completion: @escaping (Result<[Photo], NetworkError>) -> Void
     ) {
         remote.fetchList(page: page, perPage: perPage) { result in
             completion(result.map { $0.map(UnsplashPhotoMapper.toPhoto) })
@@ -50,7 +48,7 @@ final class DefaultPhotoSearchRepository: PhotoSearchRepository {
         sort: PhotoSortOption,
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[Photo], Error>) -> Void
+        completion: @escaping (Result<[Photo], NetworkError>) -> Void
     ) {
         remote.search(query: query, color: color, sort: sort, page: page, perPage: perPage) { result in
             completion(result.map { $0.map(UnsplashPhotoMapper.toPhoto) })

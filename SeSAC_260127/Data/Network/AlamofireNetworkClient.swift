@@ -23,44 +23,44 @@ final class AlamofireNetworkClient: Networking {
         _ type: T.Type,
         endpoint: Endpoint,
         headers: HTTPHeaders?,
-        completion: @escaping (Result<T, Error>) -> Void
+        completion: @escaping (Result<T, NetworkError>) -> Void
     ) {
-        guard URL(string: endpoint.urlString) != nil else {
-            completion(.failure(NetworkError.invalidURL))
+        guard let url = URL(string: endpoint.urlString) else {
+            completion(.failure(.invalidURL))
             return
         }
 
         session.request(
-            endpoint.urlString,
+            url,
             method: endpoint.method,
             parameters: endpoint.parameters,
             encoding: endpoint.encoding,
             headers: headers
         )
-        .validate(statusCode: 200..<300)
         .responseDecodable(of: T.self) { response in
+
+            if let code = response.response?.statusCode, !(200...299).contains(code) {
+                completion(.failure(.statusCode(code)))
+                return
+            }
+
             switch response.result {
             case .success(let value):
                 completion(.success(value))
 
             case .failure(let afError):
-                if let code = response.response?.statusCode {
-                    completion(.failure(NetworkError.statusCode(code)))
-                    return
-                }
 
                 if case .responseSerializationFailed(let reason) = afError,
                    case .decodingFailed(let underlying) = reason {
-                    completion(.failure(NetworkError.decoding(underlying)))
+                    completion(.failure(.decoding(underlying)))
                     return
                 }
 
                 if let urlError = afError.underlyingError as? URLError {
-                    completion(.failure(NetworkError.underlying(urlError)))
+                    completion(.failure(.underlying(urlError)))
                     return
                 }
-
-                completion(.failure(NetworkError.underlying(afError)))
+                completion(.failure(.underlying(afError)))
             }
         }
     }

@@ -26,7 +26,7 @@ final class UnsplashPhotoRemoteDataSource: PhotoSearchRemoteDataSource {
     func fetchList(
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void
+        completion: @escaping (Result<[UnsplashPhotoDTO], NetworkError>) -> Void
     ) {
         let endpoint = UnsplashEndpoint.photoList(page: page, perPage: perPage)
 
@@ -43,7 +43,7 @@ final class UnsplashPhotoRemoteDataSource: PhotoSearchRemoteDataSource {
         sort: PhotoSortOption,
         page: Int,
         perPage: Int,
-        completion: @escaping (Result<[UnsplashPhotoDTO], Error>) -> Void
+        completion: @escaping (Result<[UnsplashPhotoDTO], NetworkError>) -> Void
     ) {
         let endpoint = UnsplashEndpoint.searchPhotos(
             query: query,
