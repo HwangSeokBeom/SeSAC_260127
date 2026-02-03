@@ -78,4 +78,10 @@ final class DIContainer {
         )
         return PhotoDetailViewController(viewModel: viewModel)
     }
+    
+    func makeProfileViewController() -> ProfileViewController {
+        let useCase: BirthDateValidateUseCase = DefaultBirthDateValidateUseCase()
+        let viewModel = ProfileViewModel(validateUseCase: useCase)
+        return ProfileViewController(viewModel: viewModel)
+    }
 }

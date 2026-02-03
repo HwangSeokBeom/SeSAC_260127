@@ -142,7 +142,8 @@ final class TopicViewController: UIViewController {
     }
     
     @objc func profileTapped() {
-        // TODO: 프로필 화면 이동
+        let vc = DIContainer.shared.makeProfileViewController()
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 
@@ -183,13 +184,11 @@ extension TopicViewController: UICollectionViewDataSource {
               ) as? TopicSectionHeaderView
         else { return UICollectionReusableView() }
         
-        let title = viewModel.titleForSection(indexPath.section)   // 🔹 여기 변경
+        let title = viewModel.titleForSection(indexPath.section)
         header.configure(title: title)
         return header
     }
 }
-
-// MARK: - UICollectionViewDelegate
 
 extension TopicViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
