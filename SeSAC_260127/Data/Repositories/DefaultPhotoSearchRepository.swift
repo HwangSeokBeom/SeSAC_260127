@@ -23,16 +23,36 @@ final class DefaultPhotoSearchRepository: PhotoSearchRepository {
         perPage: Int,
         completion: @escaping (Result<[Photo], Error>) -> Void
     ) {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if trimmed.isEmpty {
-            remote.fetchList(page: page, perPage: perPage) { result in
-                completion(result.map { $0.map(UnsplashPhotoMapper.toPhoto) })
-            }
-            return
+        if trimmedQuery.isEmpty {
+            fetchList(page: page, perPage: perPage, completion: completion)
+        } else {
+            search(query: trimmedQuery, color: color, sort: sort, page: page, perPage: perPage, completion: completion)
         }
+    }
 
-        remote.search(query: trimmed, color: color, sort: sort, page: page, perPage: perPage) { result in
+    // MARK: - Private
+
+    private func fetchList(
+        page: Int,
+        perPage: Int,
+        completion: @escaping (Result<[Photo], Error>) -> Void
+    ) {
+        remote.fetchList(page: page, perPage: perPage) { result in
+            completion(result.map { $0.map(UnsplashPhotoMapper.toPhoto) })
+        }
+    }
+
+    private func search(
+        query: String,
+        color: PhotoColor?,
+        sort: PhotoSortOption,
+        page: Int,
+        perPage: Int,
+        completion: @escaping (Result<[Photo], Error>) -> Void
+    ) {
+        remote.search(query: query, color: color, sort: sort, page: page, perPage: perPage) { result in
             completion(result.map { $0.map(UnsplashPhotoMapper.toPhoto) })
         }
     }

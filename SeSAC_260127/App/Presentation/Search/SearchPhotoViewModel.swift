@@ -51,7 +51,7 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     var onError: ((String) -> Void)?
     var onLoadingChange: ((Bool) -> Void)?
 
-    private let repository: PhotoSearchRepository
+    private let searchUseCase: SearchPhotosUseCase
     private let likeUseCase: LikeToggleUseCase
     private var likeObserverToken: UUID?
 
@@ -60,8 +60,8 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     private var isLoading: Bool = false
     private var hasMore: Bool = true
 
-    init(repository: PhotoSearchRepository, likeUseCase: LikeToggleUseCase) {
-        self.repository = repository
+    init(searchUseCase: SearchPhotosUseCase, likeUseCase: LikeToggleUseCase) {
+        self.searchUseCase = searchUseCase
         self.likeUseCase = likeUseCase
         self.filters = PhotoColor.allCases.map { FilterCellModel(filter: $0) }
 
@@ -86,9 +86,19 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
     }
 
     func search(query: String) {
-        currentQuery = query
-        resetStateForNewRequest()
-        request(reset: true)
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        do {
+            let validated = try SearchQuery(trimmed).value
+            currentQuery = validated
+
+            resetStateForNewRequest()
+            request(reset: true)
+
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription ?? "검색어가 올바르지 않습니다."
+            onError?(message)
+        }
     }
 
     func selectColor(at index: Int) {
@@ -117,14 +127,15 @@ final class SearchPhotoViewModel: SearchPhotoViewModelInput, SearchPhotoViewMode
 
     private func request(reset: Bool) {
         guard !isLoading else { return }
+
         isLoading = true
         onLoadingChange?(true)
 
         let color = PhotoColor.allCases[safe: selectedColorIndex]
         let sort = currentSortOption
 
-        repository.searchPhotos(
-            query: currentQuery,
+        searchUseCase.execute(
+            rawQuery: currentQuery,
             color: color,
             sort: sort,
             page: page,

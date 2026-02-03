@@ -7,13 +7,17 @@
 
 import Foundation
 
-public struct SearchQuery: Equatable {
-    public let value: String
+struct SearchQuery {
+    let value: String
 
-    public init(_ raw: String, minLength: Int = 2, maxLength: Int = 40) throws {
+    init(_ raw: String, minLength: Int = 2, maxLength: Int = 40) throws {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard !trimmed.isEmpty else { throw SearchQueryError.empty }
+        guard !trimmed.isEmpty else {
+            self.value = ""
+            return
+        }
+
         guard trimmed.count >= minLength else { throw SearchQueryError.tooShort(min: minLength) }
         guard trimmed.count <= maxLength else { throw SearchQueryError.tooLong(max: maxLength) }
 

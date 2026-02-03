@@ -53,6 +53,10 @@ final class DIContainer {
         DefaultPhotoStatisticsRepository(remote: makePhotoStatisticsRemoteDataSource())
     }
 
+    private func makeSearchPhotosUseCase() -> SearchPhotosUseCase {
+        DefaultSearchPhotosUseCase(repository: makePhotoSearchRepository())
+    }
+
     func makeTopicViewController() -> TopicViewController {
         let viewModel = TopicViewModel(repository: makeTopicRepository())
         return TopicViewController(viewModel: viewModel)
@@ -60,7 +64,7 @@ final class DIContainer {
 
     func makeSearchPhotoViewController() -> SearchPhotoViewController {
         let viewModel = SearchPhotoViewModel(
-            repository: makePhotoSearchRepository(),
+            searchUseCase: makeSearchPhotosUseCase(),   
             likeUseCase: likeUseCase
         )
         return SearchPhotoViewController(viewModel: viewModel)
